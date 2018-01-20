@@ -26,8 +26,8 @@ Parameters:
         Description: Choose which subnets this ECS cluster should be deployed to
         Type: List<AWS::EC2::Subnet::Id>
 
-    SecurityGroup:
-        Description: Select the Security Group to use for the ECS cluster hosts
+    LoadBalancerSecurityGroup:
+        Description: Select the Load Balancer Security Group to use for the ECS cluster hosts
         Type: AWS::EC2::SecurityGroup::Id
 
     MinClusterSize:

@@ -33,7 +33,6 @@ Resources:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !GetAtt VPC.Outputs.VPC
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
-                SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
 
     RDS:
         Type: AWS::CloudFormation::Stack
@@ -53,7 +52,7 @@ Resources:
                 InstanceType: t2.large
                 ClusterSize: 4
                 VPC: !GetAtt VPC.Outputs.VPC
-                SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+                LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
                 Subnets: !GetAtt VPC.Outputs.PrivateSubnets
 
     RancherService:

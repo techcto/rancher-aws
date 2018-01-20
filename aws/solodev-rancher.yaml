@@ -258,6 +258,7 @@ Resources:
         MaxBatchSize: 1
         PauseTime: PT15M
         WaitOnResourceSignals: true
+
   ECSLaunchConfiguration:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
@@ -270,6 +271,7 @@ Resources:
       SecurityGroups:
         - !Ref ContainerSecurityGroup
       IamInstanceProfile: !Ref ECSInstanceProfile
+
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
           Ebs:
@@ -364,6 +366,7 @@ Resources:
       Path: /
       Roles:
         - !Ref ECSRole
+        
   ECSServiceRole:
     Type: 'AWS::IAM::Role'
     Properties:

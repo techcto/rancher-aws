@@ -12,6 +12,10 @@ Parameters:
         Description: Please provide the ECS Cluster ID that this service should run on
         Type: String
 
+    RDS:
+        Description: Please provide the RDS ID that this service should use
+        Type: String
+
     DesiredCount: 
         Description: How many instances of this task should we run across our cluster?
         Type: Number
@@ -57,7 +61,7 @@ Resources:
                   Environment:
                     - Name: CATTLE_DB_CATTLE_MYSQL_HOST
                     Value: !GetAtt 
-                        - DB
+                        - RDS
                         - Endpoint.Address
                     - Name: CATTLE_DB_CATTLE_MYSQL_PORT
                     Value: !Ref DBPort

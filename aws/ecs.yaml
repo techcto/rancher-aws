@@ -35,6 +35,15 @@ Resources:
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
                 SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
 
+    RDS:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://raw.githubusercontent.com/techcto/datacenter/master/aws/infrastructure/rds.yaml
+            Parameters:
+                EnvironmentName: !Ref AWS::StackName
+                VPC: !GetAtt VPC.Outputs.VPC
+                Subnets: !GetAtt VPC.Outputs.PublicSubnets
+
     ECS:
         Type: AWS::CloudFormation::Stack
         Properties:
@@ -54,6 +63,7 @@ Resources:
             Parameters:
                 VPC: !GetAtt VPC.Outputs.VPC
                 Cluster: !GetAtt ECS.Outputs.Cluster
+                RDS: !GetAtt RDS.Outputs.RDS
                 DesiredCount: 2
                 ServiceRole: !GetAtt ALB.Outputs.ServiceRole 
                 Path: /
@@ -61,6 +71,6 @@ Resources:
 
 Outputs:
 
-    WebsiteServiceUrl: 
+    RancherServiceUrl: 
         Description: The URL endpoint for the website service
         Value: !Join ["", [ !GetAtt ALB.Outputs.LoadBalancerUrl, "/" ]]

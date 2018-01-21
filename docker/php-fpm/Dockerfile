@@ -34,13 +34,6 @@ RUN apk update && \
     rm -Rf /tmp/blackfire && \
     rm -rf /var/cache/apk/*
 
-# Enable XDebug
-RUN docker-php-ext-enable xdebug
-ENV XDEBUGINI_PATH=/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-RUN echo "zend_extension="`find /usr/local/lib/php/extensions/ -iname 'xdebug.so'` > $XDEBUGINI_PATH
-COPY docker/php-fpm/xdebug.ini /tmp/xdebug.ini
-RUN cat /tmp/xdebug.ini >> $XDEBUGINI_PATH
-
 # Install Mailhog.
 ENV MAILHOG_VERSION v0.1.9
 RUN curl -fSL "https://github.com/mailhog/MailHog/releases/download/${MAILHOG_VERSION}/MailHog_linux_amd64" -o /usr/local/bin/mailhog \

@@ -8,6 +8,13 @@ Description: >
     It then deploys a highly available ECS cluster using an AutoScaling Group, with 
     ECS hosts distributed across multiple Availability Zones. 
 
+Parameters:
+
+    KeyName:
+        Default: ''
+        Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+        Type: 'AWS::EC2::KeyPair::KeyName'
+
 Resources:
 
     VPC:
@@ -50,6 +57,7 @@ Resources:
                 ClusterSize: 4
                 VPC: !GetAtt VPC.Outputs.VPC
                 EFS: !GetAtt EFS.Outputs.EFS
+                KeyName: !Ref KeyName
                 EnvType: "efs"
                 RancherServer: "http://rancher.solodev.net:8080/v1/scripts/96FE245BA7D6C830E167:1514678400000:DdnugUxYx8RVdSnB3mEpn9hxU"
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup

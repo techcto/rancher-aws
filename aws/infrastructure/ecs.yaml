@@ -22,6 +22,11 @@ Parameters:
         Description: Choose which VPC this ECS cluster should be deployed to
         Type: AWS::EC2::VPC::Id
 
+    KeyName:
+        Default: ''
+        Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+        Type: 'AWS::EC2::KeyPair::KeyName'
+
     Subnets:
         Description: Choose which subnets this ECS cluster should be deployed to
         Type: List<AWS::EC2::Subnet::Id>

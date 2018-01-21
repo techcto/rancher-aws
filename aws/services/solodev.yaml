@@ -1,0 +1,175 @@
+Description: >
+    This is an example of a long running ECS service that needs to connect to another ECS service (product-service)
+    via it's load balancer. We use environment variables to pass the URL of the product-service to this one's container(s).
+
+Parameters: 
+
+    EnvironmentName:
+        Description: An environment name that will be prefixed to resource names
+        Type: String
+
+    VPC:
+        Description: The VPC that the ECS cluster is deployed to
+        Type: AWS::EC2::VPC::Id
+
+    LoadBalancer:
+        Description: The VPC that the ECS cluster is deployed to
+        Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+        
+    Cluster:
+        Description: Please provide the ECS Cluster ID that this service should run on
+        Type: String
+
+    DesiredCount: 
+        Description: How many instances of this task should we run across our cluster?
+        Type: Number
+        Default: 2
+
+    ServiceRole:
+        Description: The Application Load Balancer Service Role
+        Type: String
+
+    Path: 
+        Description: The path to register with the Application Load Balancer
+        Type: String
+        Default: /
+
+    DBEndpointAddress:
+        Description: Please provide the Database Address that this service should use
+        Type: String
+
+    DBName:
+        Default: solodev
+        Description: The database name
+        Type: String
+        MinLength: '1'
+        MaxLength: '64'
+        AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+        ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+
+    DBUsername:
+        Default: solodev
+        NoEcho: 'true'
+        Description: The database admin account username
+        Type: String
+        MinLength: '1'
+        MaxLength: '16'
+        AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+        ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+
+    DBPassword:
+        Default: password
+        NoEcho: 'true'
+        Description: The database admin account password
+        Type: String
+        MinLength: '8'
+        MaxLength: '41'
+        AllowedPattern: '[a-zA-Z0-9]*'
+        ConstraintDescription: must contain only alphanumeric characters.
+        
+    DBPort:
+        Default: '3306'
+        Description: Database Port
+        Type: Number
+
+Resources:
+
+    Service: 
+        Type: AWS::ECS::Service
+        DependsOn: ListenerRule
+        Properties: 
+            Cluster: !Ref Cluster
+            Role: !Ref ServiceRole
+            DesiredCount: !Ref DesiredCount
+            TaskDefinition: !Ref TaskDefinition
+            LoadBalancers: 
+                - ContainerName: "solodev-wxp"
+                  ContainerPort: 80
+                  TargetGroupArn: !Ref TargetGroup
+
+    TaskDefinition:
+        Type: AWS::ECS::TaskDefinition
+        Properties:
+            Family: solodev-wxp
+            ContainerDefinitions:
+                - Name: rancher-hub
+                  Essential: true
+                  Image: solodev/wxp:latest
+                  Memory: 750
+                  Environment:
+                    - Name: SOLODEV_MYSQL_HOST
+                      Value: !Ref DBEndpointAddress
+                    - Name: SOLODEV_MYSQL_PORT
+                      Value: !Ref DBPort
+                    - Name: SOLODEV_MYSQL_NAME
+                      Value: !Ref DBName
+                    - Name: SOLODEV_USERNAME
+                      Value: !Ref DBUsername
+                    - Name: SOLODEV_PASSWORD
+                      Value: !Ref DBPassword
+                  PortMappings:
+                    - HostPort: 8080
+                      ContainerPort: 8080
+                    - HostPort: 9345
+                      ContainerPort: 9345
+                  LogConfiguration:
+                    LogDriver: awslogs
+                    Options:
+                        awslogs-group: !Ref AWS::StackName
+                        awslogs-region: !Ref AWS::Region
+                        awslogs-stream-prefix: solodev
+
+    CloudWatchLogsGroup:
+        Type: AWS::Logs::LogGroup
+        Properties: 
+            LogGroupName: !Ref AWS::StackName
+            RetentionInDays: 14  
+
+    TargetGroup:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties:
+            VpcId: !Ref VPC
+            Port: 8080
+            Protocol: HTTP
+            Matcher: 
+                HttpCode: 200-299
+            HealthCheckIntervalSeconds: 60
+            HealthCheckPath: /test.php
+            HealthCheckProtocol: HTTP
+            HealthCheckTimeoutSeconds: 30
+            TargetGroupAttributes:
+                - Key: deregistration_delay.timeout_seconds
+                  Value: '700'
+                - Key: stickiness.type
+                  Value: lb_cookie
+                - Key: stickiness.enabled
+                  Value: 'true'
+                - Key: stickiness.lb_cookie.duration_seconds
+                  Value: '1860'
+            Name: !Join 
+                - '-'
+                - - !Ref 'AWS::StackName'
+                  - RancherTargetGroup
+
+    Listener:
+        Type: 'AWS::ElasticLoadBalancingV2::Listener'
+        Properties:
+            DefaultActions:
+                - Type: forward
+                  TargetGroupArn: !Ref TargetGroup
+            LoadBalancerArn: !Ref LoadBalancer
+            Port: '80'
+            Protocol: HTTP
+    
+    ListenerRule:
+        Type: AWS::ElasticLoadBalancingV2::ListenerRule
+        Properties:
+            ListenerArn: !Ref Listener
+            Priority: 1
+            Conditions:
+                - Field: path-pattern
+                  Values: 
+                    - !Ref Path
+            Actions:
+                - TargetGroupArn: !Ref TargetGroup
+                  Type: forward

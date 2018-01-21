@@ -90,7 +90,7 @@ Mappings:
 
     AWSRegionToAMI:
         us-east-1:
-            AMI: ami-ba722dc0
+            AMI: ami-28456852
         us-east-2:
             AMI: ami-832b0ee6
         us-west-1:
@@ -163,6 +163,14 @@ Resources:
                   FromPort: 0
                   ToPort: 65535
                   SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
+                - IpProtocol: udp
+                  FromPort: 500
+                  ToPort: 500
+                  CidrIp: "0.0.0.0/0"
+                - IpProtocol: udp
+                  FromPort: 4500
+                  ToPort: 4500
+                  CidrIp: "0.0.0.0/0"
                 - IpProtocol: tcp
                   FromPort: 22
                   ToPort: 22
@@ -192,14 +200,11 @@ Resources:
             AWS::CloudFormation::Init:
                 configSets:
                     standard:
-                    - "setup"
+                    - "init"
                     efs:
-                    - "setup"
-                    - "mount"                  
-                setup:
-                    commands:
-                        01_add_instance_to_cluster:
-                            command: !Sub echo ECS_CLUSTER=${EFS} >> /etc/ecs/ecs.config
+                    - "mount"  
+                    - "init"                
+                init:
                     files:
                         "/etc/cfn/cfn-hup.conf":
                             mode: 000400
@@ -215,7 +220,7 @@ Resources:
                                 [cfn-auto-reloader-hook]
                                 triggers=post.update
                                 path=Resources.ECSLaunchConfiguration.Metadata.AWS::CloudFormation::Init
-                                action=/opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+                                action=/opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
                     services: 
                         sysvinit:
                             cfn-hup: 
@@ -224,21 +229,26 @@ Resources:
                                 files: 
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+                    commands:
+                        01_add_instance_to_cluster:
+                            command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
                 mount:
                     packages:
                         yum:
                             nfs-utils: []
                     commands:
                         02_createdir:
-                            command: !Sub "mkdir -p ${MountPoint}"
+                            command: !Sub "echo \"mkdir -p ${MountPoint}\" > /root/configureECS.sh"
                         03_mount:
-                            command: !Sub "echo \"mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}\" > /root/ecs.txt"
-                        035_mount:
-                            command: !Sub "sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}"
+                            command: !Sub "echo \"mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}\" >> /root/configureECS.sh"
                         04_permissions:
-                            command: !Sub "chown ec2-user:ec2-user /${MountPoint}"   
+                            command: !Sub "echo \"chown ec2-user:ec2-user ${MountPoint}\" >> /root/configureECS.sh"
                         05_registerCattle:
-                            command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}"
+                            command: !Sub "echo \"sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}\" >> /root/configureECS.sh"
+                        06_permissions:
+                            command: !Sub "chmod +x /root/configureECS.sh"
+                        07_configureECS:
+                            command: !Sub "/root/configureECS.sh"
 
     # This IAM Role is attached to all of the ECS hosts. It is based on the default role
     # published here:

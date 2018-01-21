@@ -4,16 +4,20 @@ Description: >
 
 Parameters: 
 
+    EnvironmentName:
+        Description: An environment name that will be prefixed to resource names
+        Type: String
+
     VPC:
         Description: The VPC that the ECS cluster is deployed to
         Type: AWS::EC2::VPC::Id
+
+    LoadBalancer:
+        Description: The VPC that the ECS cluster is deployed to
+        Type: AWS::ElasticLoadBalancingV2::LoadBalancer
         
     Cluster:
         Description: Please provide the ECS Cluster ID that this service should run on
-        Type: String
-
-    RDS:
-        Description: Please provide the RDS ID that this service should use
         Type: String
 
     DesiredCount: 
@@ -29,6 +33,44 @@ Parameters:
         Description: The path to register with the Application Load Balancer
         Type: String
         Default: /
+
+    RDSEndpointAddress:
+        Description: Please provide the RDS Address that this service should use
+        Type: String
+
+    DBName:
+        Default: cattle
+        Description: The database name
+        Type: String
+        MinLength: '1'
+        MaxLength: '64'
+        AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+        ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+
+    DBUsername:
+        Default: rancher
+        NoEcho: 'true'
+        Description: The database admin account username
+        Type: String
+        MinLength: '1'
+        MaxLength: '16'
+        AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+        ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+
+    DBPassword:
+        Default: password
+        NoEcho: 'true'
+        Description: The database admin account password
+        Type: String
+        MinLength: '8'
+        MaxLength: '41'
+        AllowedPattern: '[a-zA-Z0-9]*'
+        ConstraintDescription: must contain only alphanumeric characters.
+        
+    DBPort:
+        Default: '3306'
+        Description: Database Port
+        Type: Number
 
 Resources:
 
@@ -60,17 +102,15 @@ Resources:
                     - awslocal
                   Environment:
                     - Name: CATTLE_DB_CATTLE_MYSQL_HOST
-                    Value: !GetAtt 
-                        - RDS
-                        - Endpoint.Address
+                      Value: !Ref RDSEndpointAddress
                     - Name: CATTLE_DB_CATTLE_MYSQL_PORT
-                    Value: !Ref DBPort
+                      Value: !Ref DBPort
                     - Name: CATTLE_DB_CATTLE_MYSQL_NAME
-                    Value: !Ref DBName
+                      Value: !Ref DBName
                     - Name: CATTLE_DB_CATTLE_USERNAME
-                    Value: !Ref DBUsername
+                      Value: !Ref DBUsername
                     - Name: CATTLE_DB_CATTLE_PASSWORD
-                    Value: !Ref DBPassword
+                      Value: !Ref DBPassword
                   PortMappings:
                     - HostPort: 8080
                       ContainerPort: 8080
@@ -103,28 +143,27 @@ Resources:
             HealthCheckTimeoutSeconds: 30
             TargetGroupAttributes:
                 - Key: deregistration_delay.timeout_seconds
-                Value: '700'
+                  Value: '700'
                 - Key: stickiness.type
-                Value: lb_cookie
+                  Value: lb_cookie
                 - Key: stickiness.enabled
-                Value: 'true'
+                  Value: 'true'
                 - Key: stickiness.lb_cookie.duration_seconds
-                Value: '1860'
-        Name: !Join 
-            - '-'
-            - - !Ref 'AWS::StackName'
-            - RancherTargetGroup
+                  Value: '1860'
+            Name: !Join 
+                - '-'
+                - - !Ref 'AWS::StackName'
+                  - RancherTargetGroup
 
     Listener:
         Type: 'AWS::ElasticLoadBalancingV2::Listener'
-        DependsOn: ECSRole
         Properties:
-        DefaultActions:
-            - Type: forward
-              TargetGroupArn: !Ref TargetGroup
-        LoadBalancerArn: !Ref ECSALB
-        Port: '8080'
-        Protocol: HTTP
+            DefaultActions:
+                - Type: forward
+                  TargetGroupArn: !Ref TargetGroup
+            LoadBalancerArn: !Ref LoadBalancer
+            Port: '8080'
+            Protocol: HTTP
     
     ListenerRule:
         Type: AWS::ElasticLoadBalancingV2::ListenerRule

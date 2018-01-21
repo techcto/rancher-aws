@@ -1,7 +1,5 @@
 Description: >
-  This template deploys an Application Load Balancer that exposes our various
-  ECS services. We create them it a seperate nested template, so it can be
-  referenced by all of the other nested templates.
+  This template deploys an RDS Database for our application.
 
 Parameters:
 
@@ -12,6 +10,10 @@ Parameters:
   VPC:
     Type: 'AWS::EC2::VPC::Id'
     Description: Choose which VPC the Application Load Balancer should be deployed to
+
+  ECSHostSecurityGroup:
+    Description: Select the ECS Host Security Group to use to connect to RDS
+    Type: AWS::EC2::SecurityGroup::Id
 
   Subnets:
     Description: Choose which subnets the Application Load Balancer should be deployed to
@@ -98,16 +100,14 @@ Resources:
 
   RDSSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
-    DependsOn:
-      - ContainerSecurityGroup
     Properties:
       GroupDescription: Open database for access
-      VpcId: !Ref VpcId
+      VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '3306'
           ToPort: '3306'
-          SourceSecurityGroupId: !Ref ContainerSecurityGroup
+          SourceSecurityGroupId: !Ref ECSHostSecurityGroup
       Tags:
         - Key: Name
           Value: !Join 
@@ -145,7 +145,8 @@ Resources:
               - RDS
 Outputs:
 
-  RDS:
+  RDSEndpointAddress:
     Description: A reference to RDS
-    Value: !Ref RDS
-
+    Value: !GetAtt 
+            - RDS
+            - Endpoint.Address

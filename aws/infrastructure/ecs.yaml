@@ -41,15 +41,41 @@ Parameters:
         Default: 4
 
     SSHFrom:
-        Description: >-
-        Lockdown SSH access to the bastion host (default can be accessed from
-        anywhere)
+        Description: Lockdown SSH access to the bastion host (default can be accessed from anywhere)
         Type: String
         MinLength: '9'
         MaxLength: '18'
         Default: 0.0.0.0/0
         AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
         ConstraintDescription: must be a valid CIDR range of the form x.x.x.x/x.
+
+    EnvType: 
+        Description: Environment type.
+        Default: standard
+        Type: String
+        AllowedValues: 
+        - standard
+        - efs
+
+    EFS:
+        Description: Choose which EFS this ECS cluster should use for filestorage
+        Type: String
+        Default: ""
+
+    MountPoint:
+        Description: The mount point for the EFS volume
+        Type: String
+        MinLength: '1'
+        Default: "/var/www"
+
+    RancherServer:
+        Description: URL of Rancher server
+        Type: String
+        Default: ""
+
+Conditions: 
+    UseEFS: !Equals [ !Ref EFS, "" ]
+    UseRancherServer: !Equals [ !Ref RancherServer, "" ]
 
 Mappings:
 
@@ -101,8 +127,8 @@ Resources:
                   Value: !Join 
                     - '-'
                     - - !Ref 'AWS::StackName'
-                    - ECS-instance
-                PropagateAtLaunch: true
+                      - 'ECS-Instance'
+                  PropagateAtLaunch: true
         CreationPolicy:
             ResourceSignal: 
                 Timeout: PT15M
@@ -119,7 +145,6 @@ Resources:
                   - ScheduledActions
                 WaitOnResourceSignals: true
 
-    
     # This security group defines who/where is allowed to access the ECS hosts directly.
     # By default we're just allowing access from the load balancer.  If you want to SSH 
     # into the hosts, or expose non-load balanced services you can open their ports here.
@@ -129,13 +154,13 @@ Resources:
             VpcId: !Ref VPC
             GroupDescription: Access to the ECS hosts and the tasks/containers that run on them
             SecurityGroupIngress:
-                # Only allow inbound access to ECS from the ELB
-                - SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
-                - IpProtocol: -1
+                - IpProtocol: tcp
+                  FromPort: 0
+                  ToPort: 65535
                   SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
                 - IpProtocol: tcp
-                  FromPort: '22'
-                  ToPort: '22'
+                  FromPort: 22
+                  ToPort: 22
                   CidrIp: !Ref SSHFrom
             Tags: 
                 - Key: Name
@@ -153,15 +178,21 @@ Resources:
                 "Fn::Base64": !Sub |
                     #!/bin/bash
                     yum install -y aws-cfn-bootstrap
-                    /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+                    /opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
 
         Metadata:
             AWS::CloudFormation::Init:
-                config:
+                configSets:
+                    standard:
+                    - "setup"
+                    efs:
+                    - "setup"
+                    - "mount"                  
+                setup:
                     commands:
                         01_add_instance_to_cluster:
-                            command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+                            command: !Sub echo ECS_CLUSTER=${EFS} >> /etc/ecs/ecs.config
                     files:
                         "/etc/cfn/cfn-hup.conf":
                             mode: 000400
@@ -178,7 +209,6 @@ Resources:
                                 triggers=post.update
                                 path=Resources.ECSLaunchConfiguration.Metadata.AWS::CloudFormation::Init
                                 action=/opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
-
                     services: 
                         sysvinit:
                             cfn-hup: 
@@ -187,6 +217,21 @@ Resources:
                                 files: 
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+                mount:
+                    packages:
+                        yum:
+                            nfs-utils: []
+                    commands:
+                        02_createdir:
+                            command: !Sub "mkdir -p ${MountPoint}"
+                        03_mount:
+                            command: !Sub "echo \"mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}\" > /root/ecs.txt"
+                        035_mount:
+                            command: !Sub "sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}"
+                        04_permissions:
+                            command: !Sub "chown ec2-user:ec2-user /${MountPoint}"   
+                        05_registerCattle:
+                            command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}"
 
     # This IAM Role is attached to all of the ECS hosts. It is based on the default role
     # published here:
@@ -248,3 +293,6 @@ Outputs:
     Cluster:
         Description: A reference to the ECS cluster
         Value: !Ref ECSCluster
+    ECSHostSecurityGroup:
+        Description: A reference to the ECSHostSecurityGroup
+        Value: !Ref ECSHostSecurityGroup

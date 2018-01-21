@@ -38,7 +38,7 @@ RUN apk update && \
 RUN docker-php-ext-enable xdebug
 ENV XDEBUGINI_PATH=/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 RUN echo "zend_extension="`find /usr/local/lib/php/extensions/ -iname 'xdebug.so'` > $XDEBUGINI_PATH
-COPY docker/php/xdebug.ini /tmp/xdebug.ini
+COPY docker/php-fpm/xdebug.ini /tmp/xdebug.ini
 RUN cat /tmp/xdebug.ini >> $XDEBUGINI_PATH
 
 # Install Mailhog.

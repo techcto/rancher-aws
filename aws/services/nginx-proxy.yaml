@@ -56,25 +56,32 @@ Resources:
             ContainerDefinitions:
                 - Name: nginx-proxy
                   Essential: true
-                  Image: codesuki/ecs-nginx-proxy:latest
+                  Image: jwilder/nginx-proxy:alpine
                   Memory: 200
                   Environment:
-                    - Name: ECS_GEN_CLUSTER
-                      Value: !Join 
-                        - '-'
-                        - - !Ref 'EnvironmentName'
-                          - ECS
-                    - Name: ECS_GEN_REGION
-                      Value: !Ref AWS::Region
+                    - Name: DEFAULT_HOST
+                      Value: localhost
                   PortMappings:
                     - HostPort: 80
                       ContainerPort: 80
+                    - HostPort: 443
+                      ContainerPort: 443
+                  MountPoints: 
+                    - 
+                      SourceVolume: "docker-socket"
+                      ContainerPath: "/tmp/docker.sock"
+                      ReadOnly: true
                   LogConfiguration:
                     LogDriver: awslogs
                     Options:
                         awslogs-group: !Ref AWS::StackName
                         awslogs-region: !Ref AWS::Region
                         awslogs-stream-prefix: nginx-proxy
+            Volumes: 
+              -
+                Host:
+                  SourcePath: "/var/run/docker.sock"
+                Name: "docker-socket"
 
     CloudWatchLogsGroup:
         Type: AWS::Logs::LogGroup

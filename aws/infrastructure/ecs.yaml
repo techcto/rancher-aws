@@ -292,7 +292,10 @@ Resources:
                                 "ecr:BatchCheckLayerAvailability",
                                 "ecr:BatchGetImage",
                                 "ecr:GetDownloadUrlForLayer",
-                                "ecr:GetAuthorizationToken"
+                                "ecr:GetAuthorizationToken",
+                                "ecs:Describe*",
+                                "ecs:List*",
+                                "ec2:Describe*"
                             ],
                             "Resource": "*"
                         }]

@@ -1,0 +1,6 @@
+ghost:
+  image: ghost
+  ports:
+    - ${public_port}:2368
+  environment:
+    - VIRTUAL_HOST=ghost3.awspress.com

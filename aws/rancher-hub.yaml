@@ -8,6 +8,13 @@ Description: >
     It then deploys a highly available ECS cluster using an AutoScaling Group, with 
     ECS hosts distributed across multiple Availability Zones. 
 
+Parameters:
+
+    KeyName:
+        Default: ''
+        Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+        Type: 'AWS::EC2::KeyPair::KeyName'
+
 Resources:
 
     VPC:
@@ -38,10 +45,11 @@ Resources:
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: t2.large
-                ClusterSize: 4
+                ClusterSize: 2
                 VPC: !GetAtt VPC.Outputs.VPC
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
-                Subnets: !GetAtt VPC.Outputs.PrivateSubnets
+                Subnets: !GetAtt VPC.Outputs.PublicSubnets
+                KeyName: !Ref KeyName
 
     RDS:
         Type: AWS::CloudFormation::Stack

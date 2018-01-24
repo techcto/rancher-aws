@@ -56,11 +56,13 @@ Resources:
             ContainerDefinitions:
                 - Name: nginx-proxy
                   Essential: true
-                  Image: jwilder/nginx-proxy:alpine
+                  Image: jwilder/nginx-proxy:latest
                   Memory: 200
                   Environment:
-                    - Name: DEFAULT_HOST
-                      Value: localhost
+                    - Name: ECS_GEN_CLUSTER
+                      Value: !Ref 'EnvironmentName'
+                    - Name: ECS_GEN_REGION
+                      Value: !Ref AWS::Region
                   PortMappings:
                     - HostPort: 80
                       ContainerPort: 80

@@ -58,21 +58,21 @@ Resources:
                 VPC: !GetAtt VPC.Outputs.VPC
                 EFS: !GetAtt EFS.Outputs.EFS
                 KeyName: !Ref KeyName
-                EnvType: "efs"
+                EnvType: "rancher"
                 RancherServer: "http://rancher.solodev.net:8080/v1/scripts/96FE245BA7D6C830E167:1514678400000:DdnugUxYx8RVdSnB3mEpn9hxU"
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
 
-    NginxProxyService:
-        Type: AWS::CloudFormation::Stack
-        Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/nginx-proxy.yaml
-            Parameters:
-                EnvironmentName: !Ref AWS::StackName
-                VPC: !GetAtt VPC.Outputs.VPC
-                Cluster: !GetAtt ECS.Outputs.Cluster
-                LoadBalancer: !GetAtt ALB.Outputs.LoadBalancer
-                DesiredCount: 2
-                ServiceRole: !GetAtt ALB.Outputs.ServiceRole 
-                Path: /
+    # NginxProxyService:
+    #     Type: AWS::CloudFormation::Stack
+    #     Properties:
+    #         TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/nginx-proxy.yaml
+    #         Parameters:
+    #             EnvironmentName: !Ref AWS::StackName
+    #             VPC: !GetAtt VPC.Outputs.VPC
+    #             Cluster: !GetAtt ECS.Outputs.Cluster
+    #             LoadBalancer: !GetAtt ALB.Outputs.LoadBalancer
+    #             DesiredCount: 2
+    #             ServiceRole: !GetAtt ALB.Outputs.ServiceRole 
+    #             Path: /
 

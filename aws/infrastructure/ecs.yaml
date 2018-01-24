@@ -11,7 +11,7 @@ Parameters:
     InstanceType: 
         Description: Which instance type should we use to build the ECS cluster?
         Type: String
-        Default: c4.large
+        Default: c4.medium
 
     ClusterSize:
         Description: How many ECS hosts do you want to initially deploy?
@@ -61,6 +61,7 @@ Parameters:
         AllowedValues: 
         - standard
         - efs
+        - rancher
 
     EFS:
         Description: Choose which EFS this ECS cluster should use for filestorage
@@ -71,7 +72,7 @@ Parameters:
         Description: The mount point for the EFS volume
         Type: String
         MinLength: '1'
-        Default: "/var/www"
+        Default: "/efs"
 
     RancherServer:
         Description: URL of Rancher server
@@ -131,7 +132,7 @@ Resources:
                 - Key: Name
                   Value: !Join 
                     - '-'
-                    - - !Ref 'AWS::StackName'
+                    - - !Ref 'EnvironmentName'
                       - 'ECS-Instance'
                   PropagateAtLaunch: true
         CreationPolicy:
@@ -200,11 +201,15 @@ Resources:
             AWS::CloudFormation::Init:
                 configSets:
                     standard:
-                    - "init"
+                    - "standard"
                     efs:
-                    - "mount"  
-                    - "init"                
-                init:
+                    - "efs"  
+                    - "standard"
+                    rancher:
+                    - "efs"  
+                    - "rancher" 
+                    - "standard"                    
+                standard:
                     files:
                         "/etc/cfn/cfn-hup.conf":
                             mode: 000400
@@ -232,31 +237,21 @@ Resources:
                     commands:
                         01_add_instance_to_cluster:
                             command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
-                mount:
+                efs:
                     packages:
                         yum:
                             nfs-utils: []
                     commands:
                         02_createdir:
-                            command: !Sub "echo \"mkdir -p ${MountPoint}\" > /root/configureECS.sh"
+                            command: !Sub "mkdir -p ${MountPoint}"
                         03_mount:
-                            command: !Sub "echo \"mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}\" >> /root/configureECS.sh"
+                            command: !Sub "mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}"
                         04_permissions:
-                            command: !Sub "echo \"chown ec2-user:ec2-user ${MountPoint}\" >> /root/configureECS.sh"
+                            command: !Sub "chown ec2-user:ec2-user ${MountPoint}"
+                rancher:
+                    commands:
                         05_registerCattle:
-                            command: !Sub "echo \"sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}\" >> /root/configureECS.sh"
-                        06_permissions:
-                            command: !Sub "chmod +x /root/configureECS.sh"
-                        07_configureECS:
-                            command: !Sub "/root/configureECS.sh"
-
-    # This IAM Role is attached to all of the ECS hosts. It is based on the default role
-    # published here:
-    # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/instance_IAM_role.html
-    #
-    # You can add other IAM policy statements here to allow access from your ECS hosts
-    # to other AWS services. Please note that this role will be used by ALL containers
-    # running on the ECS host.
+                            command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}"
 
     ECSRole:
         Type: AWS::IAM::Role

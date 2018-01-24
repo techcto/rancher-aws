@@ -94,7 +94,7 @@ Resources:
             ContainerDefinitions:
                 - Name: rancher-hub
                   Essential: true
-                  Image: rancher/server:latest
+                  Image: techcto/docker-rancher:latest
                   Memory: 750
                   EntryPoint:
                     - /usr/bin/entry
@@ -116,8 +116,6 @@ Resources:
                       ContainerPort: 8080
                     - HostPort: 9345
                       ContainerPort: 9345
-                  Command: 
-                    - "apt-get -qq -y install curl && curl -X PUT -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{\"activeValue\":\"library=https://github.com/rancher/rancher-catalog.git, community=https://github.com/rancher/community-catalog.git\", \"id\":\"1as!catalog.url\", \"name\":\"catalog.url\", \"source\":\"Default Environment Variables\", \"value\":\"Solodev=https://github.com/techcto/datacenter.git\"}' 'http://localhost:8080/v1/activesettings/1as!catalog.url'"
                   LogConfiguration:
                     LogDriver: awslogs
                     Options:

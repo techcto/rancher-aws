@@ -1,8 +1,8 @@
 FROM rancher/server:latest
 
-ENV DEFAULT_CATTLE_CATALOG_URL='{"catalogs":{"solodev":{"url":"https://github.com/techcto/datacenter.git"},"library":{"url":"https://git.rancher.io/rancher-catalog.git","branch":"${RELEASE}"}}}'
+ENV DEFAULT_CATTLE_CATALOG_URL='{"catalogs":{"solodev":{"url":"https://github.com/techcto/datacenter.git"}}}'
 
-ENV CATTLE_UI.PL='solodev'
+ENV CATTLE_UI.PL='Solodev Datacenter'
 
 COPY logos /usr/share/cattle/war/assets/images/logos
 

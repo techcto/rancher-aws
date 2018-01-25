@@ -8,10 +8,16 @@ Parameters:
         Description: An environment name that will be prefixed to resource names
         Type: String
 
-    InstanceType: 
-        Description: Which instance type should we use to build the ECS cluster?
+    InstanceType:
+        Description: EC2 instance type
         Type: String
-        Default: c4.medium
+        Default: m3.medium
+        AllowedValues: [t2.micro, t2.small, t2.medium, t2.large, m3.medium, m3.large,
+        m3.xlarge, m3.2xlarge, m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge,
+        c4.large, c4.xlarge, c4.2xlarge, c4.4xlarge, c4.8xlarge, c3.large, c3.xlarge,
+        c3.2xlarge, c3.4xlarge, c3.8xlarge, r3.large, r3.xlarge, r3.2xlarge, r3.4xlarge,
+        r3.8xlarge, i2.xlarge, i2.2xlarge, i2.4xlarge, i2.8xlarge]
+        ConstraintDescription: Please choose a valid instance type.
 
     ClusterSize:
         Description: How many ECS hosts do you want to initially deploy?
@@ -61,7 +67,7 @@ Parameters:
         AllowedValues: 
         - standard
         - efs
-        - rancher
+        - rancher-host
 
     EFS:
         Description: Choose which EFS this ECS cluster should use for filestorage
@@ -205,9 +211,9 @@ Resources:
                     efs:
                     - "efs"  
                     - "standard"
-                    rancher:
+                    rancher-host:
                     - "efs"  
-                    - "rancher" 
+                    - "rancher-host" 
                     - "standard"                    
                 standard:
                     files:
@@ -248,7 +254,7 @@ Resources:
                             command: !Sub "mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}"
                         04_permissions:
                             command: !Sub "chown ec2-user:ec2-user ${MountPoint}"
-                rancher:
+                rancher-host:
                     commands:
                         05_registerCattle:
                             command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}"

@@ -15,19 +15,27 @@ Parameters:
         Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
         Type: 'AWS::EC2::KeyPair::KeyName'
 
-Resources:
-
     VPC:
-        Type: AWS::CloudFormation::Stack
-        Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/vpc.yaml
-            Parameters:
-                EnvironmentName:    !Ref AWS::StackName
-                VpcCIDR:            10.180.0.0/16
-                PublicSubnet1CIDR:  10.180.8.0/21
-                PublicSubnet2CIDR:  10.180.16.0/21
-                PrivateSubnet1CIDR: 10.180.24.0/21
-                PrivateSubnet2CIDR: 10.180.32.0/21
+        Type: AWS::EC2::VPC::Id
+        Description: Choose which VPC the Application Load Balancer should be deployed to
+
+    RancherHub:
+        Default: 'http://rancher.solodev.net/v1/scripts/D136368323D609C050CC:1514678400000:4KJFokVZTCfLtXD2IbdpLaxgmYo'
+        Description: Location of Rancher Hub Server/Cluster
+        Type: 'String'
+
+    InstanceType:
+        Description: EC2 instance type
+        Type: String
+        Default: m3.medium
+        AllowedValues: [t2.micro, t2.small, t2.medium, t2.large, m3.medium, m3.large,
+        m3.xlarge, m3.2xlarge, m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge,
+        c4.large, c4.xlarge, c4.2xlarge, c4.4xlarge, c4.8xlarge, c3.large, c3.xlarge,
+        c3.2xlarge, c3.4xlarge, c3.8xlarge, r3.large, r3.xlarge, r3.2xlarge, r3.4xlarge,
+        r3.8xlarge, i2.xlarge, i2.2xlarge, i2.4xlarge, i2.8xlarge]
+        ConstraintDescription: Please choose a valid instance type.
+
+Resources:
 
     ALB:
         Type: AWS::CloudFormation::Stack
@@ -35,7 +43,7 @@ Resources:
             TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/alb.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
-                VPC: !GetAtt VPC.Outputs.VPC
+                VPC: !Ref VPC
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
 
     EFS:
@@ -44,7 +52,7 @@ Resources:
             TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/efs.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
-                VPC: !GetAtt VPC.Outputs.VPC
+                VPC: !Ref VPC
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
 
     ECS:
@@ -53,13 +61,13 @@ Resources:
             TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/ecs.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
-                InstanceType: t2.medium
+                InstanceType: !Ref InstanceType
                 ClusterSize: 2
-                VPC: !GetAtt VPC.Outputs.VPC
+                VPC: !Ref VPC
                 EFS: !GetAtt EFS.Outputs.EFS
                 KeyName: !Ref KeyName
-                EnvType: "rancher"
-                RancherServer: "http://rancher.solodev.net:8080/v1/scripts/96FE245BA7D6C830E167:1514678400000:DdnugUxYx8RVdSnB3mEpn9hxU"
+                EnvType: "rancher-host"
+                RancherServer: !Ref RancherHub
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
                 Subnets: !GetAtt VPC.Outputs.PublicSubnets
 

@@ -1,12 +1,6 @@
 Description: >
 
-    This template deploys a VPC, with a pair of public and private subnets spread 
-    across two Availabilty Zones. It deploys an Internet Gateway, with a default 
-    route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
-    and default routes for them in the private subnets.
-
-    It then deploys a highly available ECS cluster using an AutoScaling Group, with 
-    ECS hosts distributed across multiple Availability Zones. 
+    This template deploys a AWS ECS Cluster, with a EFS filesystem mounted to /efs and a default ALB load balancer
 
 Parameters:
 
@@ -18,6 +12,10 @@ Parameters:
     VPC:
         Type: AWS::EC2::VPC::Id
         Description: Choose which VPC the Application Load Balancer should be deployed to
+
+    Subnets:
+        Description: Choose which subnets this ECS cluster should be deployed to
+        Type: List<AWS::EC2::Subnet::Id>
 
     RancherHub:
         Default: 'http://rancher.solodev.net/v1/scripts/D136368323D609C050CC:1514678400000:4KJFokVZTCfLtXD2IbdpLaxgmYo'
@@ -44,7 +42,7 @@ Resources:
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !Ref VPC
-                Subnets: !GetAtt VPC.Outputs.PublicSubnets
+                Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
 
     EFS:
         Type: AWS::CloudFormation::Stack
@@ -53,7 +51,7 @@ Resources:
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !Ref VPC
-                Subnets: !GetAtt VPC.Outputs.PublicSubnets
+                Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
 
     ECS:
         Type: AWS::CloudFormation::Stack
@@ -66,10 +64,10 @@ Resources:
                 VPC: !Ref VPC
                 EFS: !GetAtt EFS.Outputs.EFS
                 KeyName: !Ref KeyName
-                EnvType: "rancher-host"
+                EnvType: "rancherhost"
                 RancherServer: !Ref RancherHub
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
-                Subnets: !GetAtt VPC.Outputs.PublicSubnets
+                Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
 
     # NginxProxyService:
     #     Type: AWS::CloudFormation::Stack

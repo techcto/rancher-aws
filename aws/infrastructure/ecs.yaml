@@ -85,6 +85,22 @@ Parameters:
         Type: String
         Default: ""
 
+    VolumeSize:
+        Description: Size in GB of additional non-root volume
+        Type: String
+        Default: '128'
+        AllowedValues:
+        - '8'
+        - '16'
+        - '32'
+        - '64'
+        - '128'
+        - '256'
+        - '512'
+        - '1024'
+        - '2048'
+        - '4096'
+
 Conditions: 
     UseEFS: !Equals [ !Ref EFS, "" ]
     UseRancherServer: !Equals [ !Ref RancherServer, "" ]
@@ -170,7 +186,16 @@ Resources:
                   FromPort: 0
                   ToPort: 65535
                   SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
-                - IpProtocol: udp
+                - IpProtocol: tcp
+                  FromPort: 2379
+                  ToPort: 2380
+                  CidrIp: "0.0.0.0/0"
+                - IpProtocol: tcp
+                  FromPort: 9001
+                  ToPort: 9005
+                  CidrIp: "0.0.0.0/0"
+                  CidrIp: "0.0.0.0/0"
+                - IpProtocol: tcp
                   FromPort: 500
                   ToPort: 500
                   CidrIp: "0.0.0.0/0"
@@ -196,6 +221,11 @@ Resources:
             IamInstanceProfile: !Ref ECSInstanceProfile
             KeyName: !Ref KeyName
             AssociatePublicIpAddress: true
+            BlockDeviceMappings:
+            - DeviceName: /dev/xvdb
+              Ebs:
+                VolumeSize: !Ref VolumeSize
+                DeleteOnTermination: 'true'
             UserData: 
                 "Fn::Base64": !Sub |
                     #!/bin/bash

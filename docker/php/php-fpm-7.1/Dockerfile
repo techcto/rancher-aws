@@ -65,12 +65,6 @@ RUN mkdir -p /usr/local/src \
     && apk del .phpize-deps-1 \
     && rm -rf /tmp/* /var/cache/apk/*
 
-	# && wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz \
-	# && tar -xzf ioncube_loaders_lin_x86-64.tar.gz \
-	# && cd ioncube/ \
-	# && cp ioncube_loader_lin_7.0.so /usr/local/lib/php/extensions/no-debug-non-zts-20160303 \
-	# && echo "zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20160303/ioncube_loader_lin_7.0.so" >> /usr/local/etc/php/conf.d/ioncube.ini \
-
 COPY php.ini /usr/local/etc/php/conf.d/php.ini
 COPY php-fpm.conf /usr/local/etc/
 

@@ -195,7 +195,7 @@ Resources:
                   ToPort: 9005
                   CidrIp: "0.0.0.0/0"
                   CidrIp: "0.0.0.0/0"
-                - IpProtocol: tcp
+                - IpProtocol: udp
                   FromPort: 500
                   ToPort: 500
                   CidrIp: "0.0.0.0/0"
@@ -212,7 +212,7 @@ Resources:
                   Value: !Sub ${EnvironmentName}-ECS-Hosts
         
     ECSLaunchConfiguration:
-        Type: AWS::AutoScaling::LaunchConfiguration
+        Type: AWS::AutoScaling:: 
         Properties:
             ImageId:  !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMI]
             InstanceType: !Ref InstanceType
@@ -230,6 +230,7 @@ Resources:
                 "Fn::Base64": !Sub |
                     #!/bin/bash
                     yum install -y aws-cfn-bootstrap
+                    mount --make-shared /
                     /opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
 

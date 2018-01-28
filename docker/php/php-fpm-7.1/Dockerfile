@@ -30,8 +30,6 @@ RUN mkdir -p /usr/local/src \
     && rm -rf /usr/local/src/tidy-html5-$TIDY_VERSION \
     && pecl install mongodb \
     && echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini \
-    && pecl install mongo \
-    && echo "extension=mongo.so" > /usr/local/etc/php/conf.d/mongo.ini \
     && pecl install imagick \
     && docker-php-ext-enable imagick \
     && pecl install oauth \
@@ -71,7 +69,3 @@ COPY php.ini /usr/local/etc/php/conf.d/php.ini
 COPY php-fpm.conf /usr/local/etc/
 
 WORKDIR /var/www
-
-EXPOSE 9000
-
-CMD ["php-fpm"]

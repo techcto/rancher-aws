@@ -8,10 +8,12 @@
     - variable: SOLODEV_USER
       description: "Creates the main Admin Solodev User."
       label: "Solodev User"
+      default: solodev
       required: true
       type: "string"
     - variable: SOLODEV_PASSWORD
-      description: "A password for the main Solodev Admin USer."
+      description: "A password for the main Solodev Admin User."
+      default: password
       label: "Solodev Password"
       required: true
       type: password
@@ -19,20 +21,24 @@
       description: "The password that will be set for the MySQL root superuser account."
       label: "MySQL Root Password"
       required: true
+      default: password
       type: password
     - variable: MYSQL_DATABASE
       description: "Specify the name of a database to be created on image startup."
       label: "MySQL Database"
       required: true
+      default: solodev
       type: "string"
     - variable: MYSQL_USER
       description: "Creates an additional MySQL (super)user. MySQL Password must also be set."
       label: "MySQL User"
+      default: solodev
       required: true
       type: "string"
     - variable: MYSQL_PASSWORD
       description: "A password for the additional MySQL (super)user. MySQL User must also be set."
       label: "MySQL Password"
+      default: password
       required: true
       type: password
     - variable: HTTP_PORT
@@ -62,8 +68,28 @@
 
 version: '2'
 services:
+  php-fpm:
+    scale: 2
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 9000
+      unhealthy_threshold: 3
+      interval: 2000
+      strategy: recreate
+  apache:
+    scale: 2
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 80
+      unhealthy_threshold: 3
+      interval: 2000
+      strategy: recreate
   mysql:
-    scale: 1
+    scale: 2
     start_on_create: true
     health_check:
       healthy_threshold: 2
@@ -72,6 +98,3 @@ services:
       unhealthy_threshold: 3
       interval: 2000
       strategy: recreate
-  mysql-data:
-    scale: 1
-    start_on_create: true

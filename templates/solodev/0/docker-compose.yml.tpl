@@ -3,8 +3,7 @@ version: '3'
 services: 
 
   solodev:
-    build: .
-    container_name: solodev
+    image: solodev/wcms
     tty: true
     environment:
       DB_HOST: mysql
@@ -25,9 +24,7 @@ services:
     restart: always
 
   apache2: 
-    build: 
-      context: "."
-      dockerfile: ./docker/apache/Dockerfile
+    image: techcto/docker-solodev-apache2
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
       - solodev:/var/www/Solodev
@@ -80,10 +77,19 @@ volumes:
   solodev:
 
   solodev-client:
-    external: true
+    driver_opts:
+      repl: '3'
+      size: '5'
+    driver: pxd
 
   solodev-mysql:
-    external: true
+    driver_opts:
+      repl: '3'
+      size: '5'
+    driver: pxd
 
   solodev-mongo:
-    external: true
+    driver_opts:
+      repl: '3'
+      size: '5'
+    driver: pxd

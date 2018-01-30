@@ -1,7 +1,7 @@
 FROM php:7.1-fpm-alpine
 
-COPY ./docker/php/php-fpm-7.1/php.ini /usr/local/etc/php/php.ini
-COPY ./docker/php/php-fpm-7.1/php-fpm.conf /usr/local/etc/php-fpm.conf
+COPY php.ini /usr/local/etc/php/php.ini
+COPY php-fpm.conf /usr/local/etc/php-fpm.conf
 
 ENV XDEBUG_VERSION 2.4.1
 ENV MEMCACHE_VERSION 2.2.0

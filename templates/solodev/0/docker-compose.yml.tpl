@@ -3,7 +3,7 @@ version: '2'
 services: 
 
   solodev:
-    image: solodev/wcms
+    image: DockerHub/solodev/wcms
     tty: true
     environment:
       DB_HOST: mysql
@@ -40,7 +40,7 @@ services:
     image: techcto/docker-php-fpm-7.1
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
-      - .:/var/www/Solodev
+      - solodev:/var/www/Solodev
     links:
       - mysql
       - mongo
@@ -49,7 +49,7 @@ services:
       - solodev
 
   mysql:
-    image: mysql:5.7.20
+    image: mariadb
     command: --sql_mode=""
     environment:
       MYSQL_DATABASE: '${MYSQL_DATABASE}'

@@ -1,44 +1,89 @@
-version: '2'
+version: '3'
 
-services:
+services: 
 
-  solodev-lb:
-    image: rancher/lb-service-haproxy:latest
-    ports:
-      - ${mysql_lb_port}:${mysql_lb_port}
-
-  mysql-data:
-    image: busybox
-    labels:
-      io.rancher.container.start_once: true
+  solodev:
+    build: .
+    container_name: solodev
+    tty: true
+    environment:
+      DB_HOST: mysql
+      DB_USER: '${MYSQL_USER}'
+      DB_PASSWORD: '${MYSQL_PASSWORD}'
+      DB_NAME: '${MYSQL_DATABASE}'
+      MONGO_HOST: mongo
+      SOLODEV_USER: '${SOLODEV_USER}'
+      SOLODEV_PASSWORD: '${SOLODEV_PASSWORD}'
     volumes:
-      - /var/lib/mysql
+      - solodev-client:/var/www/Solodev/clients/solodev
+      - solodev:/var/www/Solodev
+    links:
+      - mysql
+      - mongo
+    depends_on:
+      - mysql
+    restart: always
+
+  apache2: 
+    build: 
+      context: "."
+      dockerfile: ./docker/apache/Dockerfile
+    volumes:
+      - solodev-client:/var/www/Solodev/clients/solodev
+      - solodev:/var/www/Solodev
+    ports:
+      - '${HTTP_PORT}:80'
+      - '${HTTPS_PORT}:443'
+    links:
+      - php-fpm
+    depends_on:
+      - solodev
+
+  php-fpm:
+    image: techcto/docker-php-fpm-7.1
+    volumes:
+      - solodev-client:/var/www/Solodev/clients/solodev
+      - .:/var/www/Solodev
+    links:
+      - mysql
+      - mongo
+    restart: always
+    depends_on:
+      - solodev
 
   mysql:
-    image: ${mysql_image}
+    image: mysql:5.7.20
+    command: --sql_mode=""
     environment:
-{{- if eq .Values.mysql_allow_empty_password "yes"}}
-      MYSQL_ALLOW_EMPTY_PASSWORD: ${mysql_allow_empty_password}
-{{- end}}
-{{- if (.Values.mysql_database)}}
-      MYSQL_DATABASE: ${mysql_database}
-{{- end}}
-{{- if eq .Values.mysql_onetime_password "yes"}}
-      MYSQL_ONETIME_PASSWORD: ${mysql_onetime_password}
-{{- end}}
-{{- if (.Values.mysql_password)}}
-      MYSQL_PASSWORD: ${mysql_password}
-{{- end}}
-{{- if eq .Values.mysql_random_root_password "yes"}}
-      MYSQL_RANDOM_ROOT_PASSWORD: ${mysql_random_root_password}
-{{- end}}
-      MYSQL_ROOT_PASSWORD: ${mysql_root_password}
-{{- if (.Values.mysql_user)}}
-      MYSQL_USER: ${mysql_user}
-{{- end}}
-    tty: true
-    stdin_open: true
-    labels:
-      io.rancher.sidekicks: mysql-data
-    volumes_from:
-      - mysql-data
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_USER: '${MYSQL_USER}'
+    ports:
+      - '${MYSQL_PORT}:3306'
+    restart: always
+    volumes:
+      - solodev-mysql:/var/lib/mysql:rw
+
+  mongo:
+    image: 'mongo:3.0'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: '${MYSQL_USER}'
+      MONGO_INITDB_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+    ports:
+      - '${MONGODB_PORT}:27017'
+    volumes:
+      - solodev-mongo:/data
+
+volumes:
+
+  solodev:
+
+  solodev-client:
+    external: true
+
+  solodev-mysql:
+    external: true
+
+  solodev-mongo:
+    external: true

@@ -3,7 +3,7 @@ version: '2'
 services: 
 
   solodev:
-    image: DockerHub/solodev/wcms
+    image: dockerhub/solodev/wcms
     tty: true
     environment:
       DB_HOST: mysql

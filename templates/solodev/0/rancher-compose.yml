@@ -44,26 +44,22 @@
     - variable: HTTP_PORT
       description: "Public port for access to HTTP through the load balancer"
       label: "HTTP Public Port"
-      required: true
-      default: 80
+      required: false
       type: "int"
     - variable: HTTPS_PORT
       description: "Public port for access to HTTPS through the load balancer"
       label: "HTTPS Public Port"
-      required: true
-      default: 443
+      required: false
       type: "int"
     - variable: MYSQL_PORT
       description: "Public port for access to MySQL through the load balancer"
       label: "MySQL Public Port"
-      required: true
-      default: 3306
+      required: false
       type: "int"
     - variable: MONGODB_PORT
       description: "Public port for access to MongoDB through the load balancer"
       label: "MongoDB Public Port"
-      required: true
-      default: 27017
+      required: false
       type: "int"
 
 version: '2'

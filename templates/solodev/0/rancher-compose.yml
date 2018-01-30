@@ -62,8 +62,28 @@
 
 version: '2'
 services:
+  php-fpm:
+    scale: 2
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 9000
+      unhealthy_threshold: 3
+      interval: 2000
+      strategy: recreate
+  apache:
+    scale: 2
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 80
+      unhealthy_threshold: 3
+      interval: 2000
+      strategy: recreate
   mysql:
-    scale: 1
+    scale: 2
     start_on_create: true
     health_check:
       healthy_threshold: 2
@@ -72,6 +92,3 @@ services:
       unhealthy_threshold: 3
       interval: 2000
       strategy: recreate
-  mysql-data:
-    scale: 1
-    start_on_create: true

@@ -14,8 +14,8 @@ services:
       SOLODEV_USER: '${SOLODEV_USER}'
       SOLODEV_PASSWORD: '${SOLODEV_PASSWORD}'
     volumes:
+      - solodev:/var/www/Solodev  
       - solodev-client:/var/www/Solodev/clients/solodev
-      - solodev:/var/www/Solodev
     links:
       - mysql
       - mongo
@@ -26,8 +26,8 @@ services:
   apache2: 
     image: techcto/docker-solodev-apache2
     volumes:
-      - solodev-client:/var/www/Solodev/clients/solodev
       - solodev:/var/www/Solodev
+      - solodev-client:/var/www/Solodev/clients/solodev
     ports:
       - 80/tcp
       - 443/tcp
@@ -39,8 +39,8 @@ services:
   php-fpm:
     image: techcto/docker-php-fpm-7.1
     volumes:
-      - solodev-client:/var/www/Solodev/clients/solodev
       - solodev:/var/www/Solodev
+      - solodev-client:/var/www/Solodev/clients/solodev
     links:
       - mysql
       - mongo

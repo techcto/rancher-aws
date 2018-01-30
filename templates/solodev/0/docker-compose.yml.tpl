@@ -29,8 +29,8 @@ services:
       - solodev-client:/var/www/Solodev/clients/solodev
       - solodev:/var/www/Solodev
     ports:
-      - :80
-      - :443
+      - 80/tcp
+      - 443/tcp
     links:
       - php-fpm
     depends_on:
@@ -57,7 +57,7 @@ services:
       MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
       MYSQL_USER: '${MYSQL_USER}'
     ports:
-      - :3306
+      - 3306/tcp
     restart: always
     volumes:
       - solodev-mysql:/var/lib/mysql:rw
@@ -68,7 +68,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: '${MYSQL_USER}'
       MONGO_INITDB_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
     ports:
-      - :27017
+      - 27017/tcp
     volumes:
       - solodev-mongo:/data
 

@@ -1,5 +1,28 @@
 version: '2'
 
+volumes:
+
+  solodev:
+
+  solodev-client:
+    driver_opts:
+      repl: '3'
+      size: '5'
+    driver: pxd
+
+  solodev-mysql:
+    driver_opts:
+      repl: '3'
+      size: '5'
+    driver: pxd
+
+  solodev-mongo:
+    driver_opts:
+      repl: '3'
+      size: '5'
+    driver: pxd
+    
+
 services: 
 
   solodev:
@@ -71,25 +94,3 @@ services:
       - 27017/tcp
     volumes:
       - solodev-mongo:/data
-
-volumes:
-
-  solodev:
-
-  solodev-client:
-    driver_opts:
-      repl: '3'
-      size: '5'
-    driver: pxd
-
-  solodev-mysql:
-    driver_opts:
-      repl: '3'
-      size: '5'
-    driver: pxd
-
-  solodev-mongo:
-    driver_opts:
-      repl: '3'
-      size: '5'
-    driver: pxd

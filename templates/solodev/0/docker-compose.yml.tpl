@@ -29,7 +29,6 @@ services:
     image: solodev/wcms
     tty: true
     labels:
-      io.rancher.sidekicks: sidekick
       io.rancher.container.pull_image: always
     environment:
       DB_HOST: mysql
@@ -51,6 +50,8 @@ services:
 
   apache2: 
     image: techcto/docker-solodev-apache2
+    labels:
+      io.rancher.sidekicks: solodev
     volumes_from:
       - solodev
     ports:
@@ -63,6 +64,8 @@ services:
 
   php-fpm:
     image: techcto/docker-php-fpm-7.1
+    labels:
+      io.rancher.sidekicks: solodev
     volumes_from:
       - solodev
     links:

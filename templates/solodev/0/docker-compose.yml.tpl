@@ -28,6 +28,9 @@ services:
   solodev:
     image: solodev/wcms
     tty: true
+    labels:
+      io.rancher.sidekicks: sidekick
+      io.rancher.container.pull_image: always
     environment:
       DB_HOST: mysql
       DB_USER: '${MYSQL_USER}'

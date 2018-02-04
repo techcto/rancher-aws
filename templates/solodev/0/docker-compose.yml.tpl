@@ -36,6 +36,8 @@ services:
       MONGO_HOST: mongo
       SOLODEV_USER: '${SOLODEV_USER}'
       SOLODEV_PASSWORD: '${SOLODEV_PASSWORD}'
+    labels:
+      io.rancher.container.pull_image: always
     volumes:
       - solodev:/var/www/Solodev  
       - solodev-client:/var/www/Solodev/clients/solodev

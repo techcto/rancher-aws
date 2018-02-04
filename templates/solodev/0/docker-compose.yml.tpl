@@ -65,7 +65,7 @@ services:
       io.rancher.sidekicks: solodev
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
-    volumes-from:
+    volumes_from:
       - solodev
     links:
       - mysql

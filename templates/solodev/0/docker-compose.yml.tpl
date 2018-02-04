@@ -44,8 +44,6 @@ services:
     links:
       - mysql
       - mongo
-    depends_on:
-      - mysql
     restart: always
 
   apache2: 

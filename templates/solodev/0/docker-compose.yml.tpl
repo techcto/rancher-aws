@@ -48,7 +48,7 @@ services:
 
   apache2: 
     image: techcto/docker-solodev-apache2
-    volumes-from:
+    volumes_from:
       - solodev
     ports:
       - 80/tcp
@@ -60,7 +60,7 @@ services:
 
   php-fpm:
     image: techcto/docker-php-fpm-7.1
-    volumes-from:
+    volumes_from:
       - solodev
     links:
       - mysql

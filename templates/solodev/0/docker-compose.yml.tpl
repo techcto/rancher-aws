@@ -2,8 +2,6 @@ version: '2'
 
 volumes:
 
-  solodev:
-
   solodev-client:
     driver_opts:
       repl: '3'
@@ -44,12 +42,13 @@ services:
     links:
       - mysql
       - mongo
+    depends_on:
+      - mysql
     restart: always
 
   apache2: 
     image: techcto/docker-solodev-apache2
     volumes:
-      - solodev:/var/www/Solodev
       - solodev-client:/var/www/Solodev/clients/solodev
     ports:
       - 80/tcp
@@ -58,12 +57,16 @@ services:
       - php-fpm
     depends_on:
       - solodev
+    restart: always
 
   php-fpm:
     image: techcto/docker-php-fpm-7.1
+    labels:
+      io.rancher.sidekicks: solodev
     volumes:
-      - solodev:/var/www/Solodev
       - solodev-client:/var/www/Solodev/clients/solodev
+    volumes-from:
+      - solodev
     links:
       - mysql
       - mongo

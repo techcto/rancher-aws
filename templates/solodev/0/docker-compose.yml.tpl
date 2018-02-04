@@ -28,8 +28,6 @@ services:
   solodev:
     image: solodev/wcms
     tty: true
-    labels:
-      io.rancher.container.pull_image: always
     environment:
       DB_HOST: mysql
       DB_USER: '${MYSQL_USER}'
@@ -50,10 +48,9 @@ services:
 
   apache2: 
     image: techcto/docker-solodev-apache2
-    labels:
-      io.rancher.sidekicks: solodev
-    volumes_from:
-      - solodev
+    volumes:
+      - solodev:/var/www/Solodev
+      - solodev-client:/var/www/Solodev/clients/solodev
     ports:
       - 80/tcp
       - 443/tcp
@@ -64,10 +61,9 @@ services:
 
   php-fpm:
     image: techcto/docker-php-fpm-7.1
-    labels:
-      io.rancher.sidekicks: solodev
-    volumes_from:
-      - solodev
+    volumes:
+      - solodev:/var/www/Solodev
+      - solodev-client:/var/www/Solodev/clients/solodev
     links:
       - mysql
       - mongo

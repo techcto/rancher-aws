@@ -12,7 +12,7 @@ volumes:
     driver_opts:
       repl: '3'
       size: '5'
-    driver: pxd
+    driver: pxd 
 
   solodev-mongo:
     driver_opts:
@@ -23,7 +23,7 @@ volumes:
 
 services: 
 
-  solodev:
+  php-fpm:
     image: solodev/wcms
     tty: true
     environment:
@@ -37,7 +37,6 @@ services:
     labels:
       io.rancher.container.pull_image: always
     volumes:
-      - solodev:/var/www/Solodev  
       - solodev-client:/var/www/Solodev/clients/solodev
     links:
       - mysql
@@ -47,7 +46,7 @@ services:
     restart: always
 
   apache2: 
-    image: techcto/docker-solodev-apache2
+    image: solodev/wcms-apache2
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
     ports:
@@ -55,24 +54,7 @@ services:
       - 443/tcp
     links:
       - php-fpm
-    depends_on:
-      - solodev
     restart: always
-
-  php-fpm:
-    image: techcto/docker-php-fpm-7.1
-    labels:
-      io.rancher.sidekicks: solodev
-    volumes:
-      - solodev-client:/var/www/Solodev/clients/solodev
-    volumes_from:
-      - solodev
-    links:
-      - mysql
-      - mongo
-    restart: always
-    depends_on:
-      - solodev
 
   mysql:
     image: mariadb

@@ -46,7 +46,7 @@ services:
     restart: always
 
   apache2: 
-    image: solodev/wcms-apache2
+    image: solodev/wcms-apache
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
     ports:

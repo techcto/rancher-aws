@@ -6,18 +6,21 @@ volumes:
     driver_opts:
       repl: '3'
       size: '5'
+      shared: true
     driver: pxd
 
   solodev-mysql:
     driver_opts:
       repl: '3'
       size: '5'
+      shared: true
     driver: pxd 
 
   solodev-mongo:
     driver_opts:
       repl: '3'
       size: '5'
+      shared: true
     driver: pxd
     
 

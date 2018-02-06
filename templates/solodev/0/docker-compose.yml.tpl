@@ -25,15 +25,13 @@ volumes:
 services: 
 
   rancher-lb:
-    ports:
-     - 80:80
     restart: always
     tty: true
     image: rancher/load-balancer-service
     links:
-     - php-fpm:php-fpm
      - apache2:apache2
     stdin_open: true
+    net: managed
 
   php-fpm:
     image: solodev/wcms
@@ -56,6 +54,7 @@ services:
     depends_on:
       - mysql
     restart: always
+    net: managed
 
   apache2: 
     image: solodev/wcms-apache
@@ -67,6 +66,7 @@ services:
     links:
       - php-fpm
     restart: always
+    net: managed
 
   mysql:
     image: mariadb
@@ -81,6 +81,7 @@ services:
     restart: always
     volumes:
       - solodev-mysql:/var/lib/mysql:rw
+    net: managed
 
   mongo:
     image: 'mongo:3.0'
@@ -91,3 +92,4 @@ services:
       - 27017/tcp
     volumes:
       - solodev-mongo:/data
+    net: managed

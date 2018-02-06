@@ -44,12 +44,24 @@
 
   rancher-lb:
     scale: 1
+    labels:
+      io.rancher.container.agent.role: environmentAdmin,agent
+      io.rancher.container.agent_service.drain_provider: 'true'
+      io.rancher.container.create_agent: 'true'
+      io.rancher.lb_service.target: 'prefer-local'
     lb_config:
       certs: []
+    port_rules:
+      - source_port: 80
+        target_port: 80
+        service: apache2
+      - source_port: 443
+        target_port: 443
+        service: apache2
     health_check:
       response_timeout: 2000
       healthy_threshold: 2
-      port: null
+      port: 42
       unhealthy_threshold: 3
 
   php-fpm:

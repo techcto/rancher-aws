@@ -56,14 +56,18 @@
       healthy_threshold: 2
       port: 42
       unhealthy_threshold: 3
+    start_on_create: true
 
   php-fpm:
     scale: 3
+    start_on_create: true
 
   apache2:
     labels: 
       rap.host: '{STACK_NAME}.awspress.com'
     scale: 3
+    start_on_create: true
 
   mysql:
     scale: 1
+    start_on_create: true

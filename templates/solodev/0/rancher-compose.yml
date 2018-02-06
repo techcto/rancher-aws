@@ -17,11 +17,6 @@
       label: "Solodev Password"
       required: true
       type: password
-    - variable: ADMIN_URL
-      description: ".awspress.com"
-      label: "Admin URL"
-      required: true
-      type: string
     - variable: MYSQL_ROOT_PASSWORD
       description: "The password that will be set for the MySQL root superuser account."
       label: "MySQL Root Password"
@@ -66,8 +61,8 @@
 
   apache2:
     labels: 
-      rap.host: '{ADMIN_URL}.awspress.com'
+      rap.host: '{STACK_NAME}.awspress.com'
     scale: 2
-    
+
   mysql:
     scale: 1

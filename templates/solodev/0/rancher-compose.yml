@@ -47,7 +47,6 @@
       required: true
       type: password
 
-services:
   rancher-lb:
     scale: 1
     lb_config:

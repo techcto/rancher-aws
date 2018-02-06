@@ -27,7 +27,7 @@ services:
   php-fpm-lb:
     restart: always
     tty: true
-    image: rancher/load-balancer-service
+    image: rancher/lb-service-haproxy
     expose:
       - 9000/tcp
     labels:
@@ -67,7 +67,6 @@ services:
       - solodev-client:/var/www/Solodev/clients/solodev
     ports:
       - 80/tcp
-      - 443/tcp
     links:
       - php-fpm-lb:php-fpm
     restart: always

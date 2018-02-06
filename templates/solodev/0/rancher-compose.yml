@@ -42,32 +42,32 @@
       required: true
       type: password
 
-  php-fpm-lb:
-    scale: 3
-    labels:
-      io.rancher.container.agent.role: environmentAdmin,agent
-      io.rancher.container.agent_service.drain_provider: 'true'
-      io.rancher.container.create_agent: 'true'
-      io.rancher.lb_service.target: 'prefer-local'
-    lb_config:
-      certs: []
-    health_check:
-      response_timeout: 2000
-      healthy_threshold: 2
-      port: 42
-      unhealthy_threshold: 3
-    start_on_create: true
+php-fpm-lb:
+  scale: 3
+  labels:
+    io.rancher.container.agent.role: environmentAdmin,agent
+    io.rancher.container.agent_service.drain_provider: 'true'
+    io.rancher.container.create_agent: 'true'
+    io.rancher.lb_service.target: 'prefer-local'
+  lb_config:
+    certs: []
+  health_check:
+    response_timeout: 2000
+    healthy_threshold: 2
+    port: 42
+    unhealthy_threshold: 3
+  start_on_create: true
 
-  php-fpm:
-    scale: 3
-    start_on_create: true
+php-fpm:
+  scale: 3
+  start_on_create: true
 
-  apache2:
-    labels: 
-      rap.host: '{STACK_NAME}.awspress.com'
-    scale: 3
-    start_on_create: true
+apache2:
+  labels: 
+    rap.host: '{STACK_NAME}.awspress.com'
+  scale: 3
+  start_on_create: true
 
-  mysql:
-    scale: 1
-    start_on_create: true
+mysql:
+  scale: 1
+  start_on_create: true

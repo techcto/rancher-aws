@@ -31,7 +31,6 @@ services:
     links:
      - apache2:apache2
     stdin_open: true
-    net: managed
 
   php-fpm:
     image: solodev/wcms

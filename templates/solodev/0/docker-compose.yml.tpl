@@ -54,10 +54,11 @@ services:
     depends_on:
       - mysql
     restart: always
-    net: managed
 
   apache2: 
     image: solodev/wcms-apache
+    labels:
+      io.rancher.container.network: true
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
     ports:
@@ -66,7 +67,6 @@ services:
     links:
       - php-fpm
     restart: always
-    net: managed
 
   mysql:
     image: mariadb
@@ -81,7 +81,6 @@ services:
     restart: always
     volumes:
       - solodev-mysql:/var/lib/mysql:rw
-    net: managed
 
   mongo:
     image: 'mongo:3.0'
@@ -92,4 +91,3 @@ services:
       - 27017/tcp
     volumes:
       - solodev-mongo:/data
-    net: managed

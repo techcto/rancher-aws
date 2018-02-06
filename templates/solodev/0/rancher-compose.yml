@@ -60,11 +60,14 @@
       healthy_threshold: 2
       port: 42
       unhealthy_threshold: 3
+
   php-fpm:
     scale: 2
+
   apache2:
     labels: 
       rap.host: '{ADMIN_URL}.awspress.com'
     scale: 2
+    
   mysql:
     scale: 1

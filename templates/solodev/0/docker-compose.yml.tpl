@@ -27,7 +27,7 @@ services:
   php-fpm-lb:
     restart: always
     tty: true
-    image: rancher/lb-service-haproxy
+    image: rancher/load-balancer-service
     expose:
       - 9000/tcp
     labels:

@@ -46,14 +46,10 @@
     scale: 1
     lb_config:
       certs: []
-      port_rules:
-      - protocol: http
-        service: apache2
-        target_port: 80
     health_check:
       response_timeout: 2000
       healthy_threshold: 2
-      port: 42
+      port: null
       unhealthy_threshold: 3
 
   php-fpm:

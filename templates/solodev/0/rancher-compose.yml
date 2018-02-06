@@ -64,7 +64,7 @@ php-fpm:
 
 apache2:
   labels: 
-    rap.host: '{STACK_NAME}.awspress.com'
+    rap.host: '{{ .Stack.Name }}.awspress.com'
   scale: 3
   start_on_create: true
 

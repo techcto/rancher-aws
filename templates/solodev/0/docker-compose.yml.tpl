@@ -24,6 +24,17 @@ volumes:
 
 services: 
 
+  rancher-lb:
+    ports:
+     - 80:80
+    restart: always
+    tty: true
+    image: rancher/load-balancer-service
+    links:
+     - php-fpm:php-fpm
+     - apache2:apache2
+    stdin_open: true
+
   php-fpm:
     image: solodev/wcms
     tty: true

@@ -17,6 +17,11 @@
       label: "Solodev Password"
       required: true
       type: password
+    - variable: ADMIN_URL
+      description: ".awspress.com"
+      label: "Admin URL"
+      required: true
+      type: string
     - variable: MYSQL_ROOT_PASSWORD
       description: "The password that will be set for the MySQL root superuser account."
       label: "MySQL Root Password"
@@ -42,20 +47,25 @@
       required: true
       type: password
 
-solodev-lb:
-  scale: 1
-  load_balancer_config:
-    haproxy_config: {}
-  health_check:
-    port: 42
-    interval: 2000
-    unhealthy_threshold: 3
-    strategy: recreate
-    response_timeout: 2000
-    healthy_threshold: 2
-php-fpm:
-  scale: 2
-apache2:
-  scale: 2
-mysql:
-  scale: 1
+services:
+  rancher-lb:
+    scale: 1
+    lb_config:
+      certs: []
+      port_rules:
+      - protocol: http
+        service: apache2
+        target_port: 80
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 42
+      unhealthy_threshold: 3
+  php-fpm:
+    scale: 2
+  apache2:
+    labels: 
+      rap.host: '{ADMIN_URL}.awspress.com'
+    scale: 2
+  mysql:
+    scale: 1

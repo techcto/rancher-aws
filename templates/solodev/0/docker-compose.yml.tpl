@@ -24,12 +24,17 @@ volumes:
 
 services: 
 
-  rancher-lb:
+  php-fpm-lb:
     restart: always
     tty: true
-    image: rancher/load-balancer-service
+    image: rancher/lb-service-haproxy
+    expose:
+      - 9000/tcp
+    labels:
+      io.rancher.container.agent.role: environmentAdmin
+      io.rancher.container.create_agent: 'true'
     links:
-     - apache2:apache2
+      - php-fpm
     stdin_open: true
 
   php-fpm:
@@ -64,7 +69,7 @@ services:
       - 80/tcp
       - 443/tcp
     links:
-      - php-fpm
+      - php-fpm-lb:php-fpm
     restart: always
 
   mysql:

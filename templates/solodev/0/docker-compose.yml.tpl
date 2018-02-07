@@ -2,7 +2,7 @@ version: '2'
 
 volumes:
 
-  sessions:
+  sessions
 
   solodev-client:
     driver_opts:
@@ -22,7 +22,6 @@ volumes:
       repl: '3'
       size: '5'
     driver: pxd
-    
 
 services: 
 

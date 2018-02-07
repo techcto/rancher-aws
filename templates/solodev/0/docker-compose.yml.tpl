@@ -2,8 +2,6 @@ version: '2'
 
 volumes:
 
-  sessions: ~
-
   solodev-client:
     driver_opts:
       repl: '3'

@@ -2,7 +2,7 @@ version: '2'
 
 volumes:
 
-  sessions
+  sessions:
 
   solodev-client:
     driver_opts:

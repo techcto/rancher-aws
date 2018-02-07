@@ -2,6 +2,8 @@ version: '2'
 
 volumes:
 
+  sessions
+
   solodev-client:
     driver_opts:
       repl: '3'
@@ -52,6 +54,7 @@ services:
       io.rancher.container.pull_image: always
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
+      - sessions:/var/lib/php/session
     links:
       - mysql
       - mongo

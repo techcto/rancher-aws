@@ -22,7 +22,7 @@ volumes:
     driver: pxd
 
 
-services: 
+services:
 
   php-fpm-lb:
     restart: always

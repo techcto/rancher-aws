@@ -1,6 +1,12 @@
 {{ define "upstream" }}
 {{- if not .FIRST.Get -}}
 	upstream {{.HOST}} {
+
+{{- $balancing_algorithm := or (env "BALANCING_ALGORITHM") "" }}
+{{- if $balancing_algorithm }}
+	{{ $balancing_algorithm }};
+{{ end -}} 
+
 {{- end -}}
 {{ if .ONLINE }}
 	# Access through rancher managed network
@@ -303,10 +309,7 @@ server {
 
 {{range $service := $services}}
 {{- $addrLen := len $service.Ports }}
-{{- $balancing_algorithm := or (env "BALANCING_ALGORITHM") "" }}
-{{- if $balancing_algorithm }}
-	{{ $balancing_algorithm }};
-{{ end -}} 
+
 {{- range $cont := $service.Containers | filterHost $host_filter }}
 		{{- $online := (and (or (eq .Health "") (eq .Health "healthy")) (eq .State "running")) -}}
 		{{- if ne $destPort ""}}

@@ -301,6 +301,11 @@ server {
 {{- $destPort := last $destParts }}
 {{- $alive := cell false }}
 
+$balancing_algorithm = "ip_hash"
+{{- if $balancing_algorithm }}
+	$balancing_algorithm;
+}
+
 {{range $service := $services}}
 {{- $addrLen := len $service.Ports }}
 {{- range $cont := $service.Containers | filterHost $host_filter }}

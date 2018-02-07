@@ -1,5 +1,5 @@
-name: Rancher Active Proxy
-description: "Automatic Active Proxy for Rancher with Let's Encrypt support"
+name: Modified Rancher Proxy
+description: "Automatic Proxy for Rancher with Let's Encrypt support"
 version: "v0.0.1"
 category: Proxy
 maintainer: AdrienM

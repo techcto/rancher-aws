@@ -51,6 +51,15 @@ php-fpm-lb:
     io.rancher.lb_service.target: 'prefer-local'
   lb_config:
     certs: []
+    config: []
+    default_cert: null
+    stickiness_policy:
+        name: {{ .Stack.Name }}-session
+        cookie: {{ .Stack.Name }}-session
+        domain: {{ .Stack.Name }}.awspress.com
+        indirect: false
+        nocache: false
+        postonly: false
   health_check:
     response_timeout: 2000
     healthy_threshold: 2

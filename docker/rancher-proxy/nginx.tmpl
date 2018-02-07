@@ -301,16 +301,16 @@ server {
 {{- $destPort := last $destParts }}
 {{- $alive := cell false }}
 
-{{- $balancing_algorithm := or (env "BALANCING_ALGORITHM") "" }}
-{{- if $balancing_algorithm }}
-	{{ $balancing_algorithm }};
-}
-{{ end -}}
-
 {{range $service := $services}}
 {{- $addrLen := len $service.Ports }}
 {{- range $cont := $service.Containers | filterHost $host_filter }}
 		{{- $online := (and (or (eq .Health "") (eq .Health "healthy")) (eq .State "running")) -}}
+
+		{{- $balancing_algorithm := or (env "BALANCING_ALGORITHM") "" }}
+		{{- if $balancing_algorithm }}
+			{{ $balancing_algorithm }};
+		{{ end -}}
+
 		{{- if ne $destPort ""}}
 			{{- template "upstream" (dict "HOST" $host "FIRST" $alive "IP" $cont.Address "ONLINE" $online "PORT" $destPort) }}
 			{{- $_ := $alive.Set true }}

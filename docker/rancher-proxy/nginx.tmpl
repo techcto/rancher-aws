@@ -305,6 +305,7 @@ server {
 {{- if $balancing_algorithm }}
 	{{ $balancing_algorithm }};
 }
+{{ end -}}
 
 {{range $service := $services}}
 {{- $addrLen := len $service.Ports }}

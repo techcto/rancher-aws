@@ -49,10 +49,6 @@ php-fpm-lb:
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
-  lb_config:
-    certs: []
-    config: []
-    default_cert: null
   health_check:
     response_timeout: 2000
     healthy_threshold: 2

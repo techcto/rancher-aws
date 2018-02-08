@@ -104,7 +104,3 @@ RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
 
 COPY php.ini /usr/local/etc/php/php.ini
 COPY php-fpm.conf /usr/local/etc/php-fpm.conf
-
-RUN  mkdir -p /var/lib/php/session \
-	 chown www-data:www-data /var/lib/php/session \
-	 chmod-Rf 2770 /var/lib/php/session 

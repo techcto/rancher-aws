@@ -71,6 +71,7 @@ services:
       - 80/tcp
     links:
       - php-fpm-lb:php-fpm
+    command: ["./wait-for-it.sh", "php-fpm", "httpd-foreground"]
     restart: always
 
   mysql:

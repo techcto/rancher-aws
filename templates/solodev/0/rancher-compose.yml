@@ -80,6 +80,7 @@ apache2-lb:
     - protocol: http
       service: apache2
       source_port: ${SOLODEV_PORT}
+      target_port: 80
   health_check:
     response_timeout: 2000
     healthy_threshold: 2

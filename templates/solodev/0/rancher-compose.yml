@@ -5,6 +5,11 @@
   uuid: solodev-0
   minimum_rancher_version: v1.0.0
   questions:
+    - variable: SOLODEV_PORT
+      description: "Port for Solodev Admin."
+      label: "Solodev Port"
+      required: true
+      type: "integer"
     - variable: SOLODEV_USER
       description: "Creates the main Admin Solodev User."
       label: "Solodev User"
@@ -67,6 +72,7 @@ apache2-lb:
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
+    rap.host: '{{ .Stack.Name }}.awspress.com,apache2.{{ .Stack.Name }}.default.awspress.com'
   health_check:
     response_timeout: 2000
     healthy_threshold: 2
@@ -75,8 +81,6 @@ apache2-lb:
   start_on_create: true
 
 apache2:
-  labels: 
-    rap.host: '{{ .Stack.Name }}.awspress.com,apache2.{{ .Stack.Name }}.default.awspress.com'
   scale: 3
   start_on_create: true
 

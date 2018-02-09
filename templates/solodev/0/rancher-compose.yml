@@ -60,6 +60,20 @@ php-fpm:
   scale: 3
   start_on_create: true
 
+apache2-lb:
+  scale: 3
+  labels:
+    io.rancher.container.agent.role: environmentAdmin,agent
+    io.rancher.container.agent_service.drain_provider: 'true'
+    io.rancher.container.create_agent: 'true'
+    io.rancher.lb_service.target: 'prefer-local'
+  health_check:
+    response_timeout: 2000
+    healthy_threshold: 2
+    port: 42
+    unhealthy_threshold: 3
+  start_on_create: true
+
 apache2:
   labels: 
     rap.host: '{{ .Stack.Name }}.awspress.com,apache2.{{ .Stack.Name }}.default.awspress.com'

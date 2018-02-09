@@ -62,6 +62,19 @@ services:
       - mysql
     restart: always
 
+  apache2-lb:
+    restart: always
+    tty: true
+    image: rancher/load-balancer-service
+    expose:
+      - 80/tcp
+    labels:
+      io.rancher.container.agent.role: environmentAdmin
+      io.rancher.container.create_agent: 'true'
+    links:
+      - apache2
+    stdin_open: true
+
   apache2: 
     image: solodev/wcms-apache
     labels:
@@ -69,8 +82,6 @@ services:
       io.rancher.container.pull_image: always
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
-    ports:
-      - 80/tcp
     links:
       - php-fpm-lb:php-fpm
     entrypoint: /usr/local/apache/conf/wait-for-it.sh php-fpm:9000 -t 60 --

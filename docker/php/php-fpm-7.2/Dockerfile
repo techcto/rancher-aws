@@ -2,45 +2,101 @@ FROM php:7.2.0-fpm-alpine3.7
 
 RUN echo "http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
 
-RUN set -xe
+FROM php:7.1-fpm-alpine
 
-# Default PHP Configurations values.
-ENV PHP_MEMORY_LIMIT 64M
-ENV PHP_TIMEZONE=UTC
-ENV PHP_REALPATH_CACHE_SIZE 2M
+ENV XDEBUG_VERSION 2.4.1
+ENV MEMCACHE_VERSION 2.2.0
+ENV TIDY_VERSION=5.1.25
 
-# FPM Configurations.
-ENV PHP_FPM_MAX_CHILDREN 5
-ENV PHP_FPM_START_SERVERS 2
-ENV PHP_FPM_MIN_SPARE_SERVERS 1
-ENV PHP_FPM_MAX_SPARE_SERVERS 3
+RUN apk add --no-cache \
+		bash \
+		sed
 
-ENV XDEBUG_VERSION 2.6.0alpha1
-ENV MEMCACHE_VERSION 3.0.4
-ENV PHPREDIS_VERSION 3.1.4
-ENV PHP_EXTRA_DEPS libxml2-dev icu-dev libmemcached-dev cyrus-sasl-dev libpng libjpeg-turbo freetype-dev libpng-dev libjpeg-turbo-dev
-RUN apk update && \
-    apk add ${PHP_EXTRA_DEPS} ${PHPIZE_DEPS} && \
-    docker-php-ext-configure gd --with-gd --with-freetype-dir=/usr/include/ --with-png-dir=/usr/include/ --with-jpeg-dir=/usr/include/ && \
-    apk add ${PHP_EXTRA_DEPS} ${PHPIZE_DEPS} gettext && \
-    docker-php-ext-install soap gd mbstring pdo pdo_mysql zip intl pcntl && \
-    pecl install xdebug-${XDEBUG_VERSION} && \
-    pecl install redis-${PHPREDIS_VERSION} && \
-    pecl install igbinary memcached-${MEMCACHE_VERSION} --disable-memcached-sasl && \
-    apk del ${PHPIZE_DEPS} && \
-    mkdir -p /tmp/blackfire && \
-    curl -A "Docker" -L https://blackfire.io/api/v1/releases/client/linux_static/amd64 | tar zxp -C /tmp/blackfire && \
-    mv /tmp/blackfire/blackfire /usr/bin/blackfire && \
-    rm -Rf /tmp/blackfire && \
-    rm -rf /var/cache/apk/*
+RUN set -ex; \
+	\
+	apk add --no-cache --virtual .build-deps \
+		autoconf \
+		build-base \
+		bzip2-dev \
+		gettext-dev \
+		icu-dev \
+		imagemagick-dev \
+		imap-dev \
+		libjpeg-turbo-dev \
+		libmcrypt-dev \
+		libmemcached-dev \
+		libpng-dev \
+		libssh2-dev \
+		libtool \
+		libxml2-dev \
+		libxslt-dev \
+		openldap-dev \
+		pcre-dev \
+        make zip unzip wget curl cmake \
+	; 
 
-# Install Mailhog.
-ENV MAILHOG_VERSION v0.1.9
-RUN curl -fSL "https://github.com/mailhog/MailHog/releases/download/${MAILHOG_VERSION}/MailHog_linux_amd64" -o /usr/local/bin/mailhog \
-    && chmod +x /usr/local/bin/mailhog
+RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
+	docker-php-ext-install \
+		bcmath \	
+		bz2 \
+		calendar \
+		dba \
+		exif \
+		gd \
+		gettext \
+		imap \
+		intl \
+		ldap \
+		mcrypt \
+		mysqli \
+		opcache \
+		pdo_mysql \
+		shmop \
+		soap \
+		sockets \
+		sysvmsg \
+		sysvsem \
+		sysvshm \
+		wddx \
+		xmlrpc \
+		xsl \ 
+		zip \
+	; \
+	pecl install \
+        apcu \
+		igbinary \
+		imagick \
+		memcached \
+		msgpack \
+        mongodb \
+        oauth \
+		redis \
+	; \
+	echo "\n" | pecl install ssh2-1.0; \
+	docker-php-ext-enable --ini-name pecl.ini \
+        apcu \
+		igbinary \
+		imagick \
+		memcached \
+		msgpack \
+        mongodb \
+        oauth \
+		redis \
+		ssh2 \
+	; \
+	runDeps="$( \
+		scanelf --needed --nobanner --recursive \
+			/usr/local/lib/php/extensions \
+			| awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+			| sort -u \
+			| xargs -r apk info --installed \
+			| sort -u \
+	)"; \
+	apk add --virtual $runDeps; \
+	rm -rf /tmp/pear/;
 
-#Install Common Libs
-RUN apk add --no-cache zip unzip wget curl openssl git
+COPY php.ini /usr/local/etc/php/php.ini
+COPY php-fpm.conf /usr/local/etc/php-fpm.conf
 
 #Install Composer
 RUN curl -sS https://getcomposer.org/installer | \

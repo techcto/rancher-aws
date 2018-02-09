@@ -67,7 +67,7 @@ services:
     tty: true
     image: rancher/load-balancer-service
     ports:
-      - ${SOLODEV_PORT}:${SOLODEV_PORT}
+      - ${SOLODEV_PORT}:80
     labels:
       io.rancher.container.agent.role: environmentAdmin
       io.rancher.container.create_agent: 'true'

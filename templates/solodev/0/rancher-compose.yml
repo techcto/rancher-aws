@@ -90,6 +90,13 @@ apache2-lb:
 apache2:
   scale: 3
   start_on_create: true
+  health_check:
+      port: 80
+      interval: 5000
+      unhealthy_threshold: 3
+      request_line: 'GET / HTTP/1.0'
+      healthy_threshold: 2
+      response_timeout: 5000
 
 mysql:
   scale: 1

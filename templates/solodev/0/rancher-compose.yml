@@ -9,7 +9,7 @@
       description: "Port for Solodev Admin."
       label: "Solodev Port"
       required: true
-      type: "number"
+      type: "int"
     - variable: SOLODEV_USER
       description: "Creates the main Admin Solodev User."
       label: "Solodev User"

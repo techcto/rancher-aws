@@ -50,6 +50,7 @@ services:
       SOLODEV_USER: '${SOLODEV_USER}'
       SOLODEV_PASSWORD: '${SOLODEV_PASSWORD}'
     labels:
+      io.rancher.container.network: true
       io.rancher.container.pull_image: always
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
@@ -65,6 +66,7 @@ services:
     image: solodev/wcms-apache
     labels:
       io.rancher.container.network: true
+      io.rancher.container.pull_image: always
     volumes:
       - solodev-client:/var/www/Solodev/clients/solodev
     ports:

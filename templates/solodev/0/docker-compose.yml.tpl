@@ -66,6 +66,8 @@ services:
     restart: always
     tty: true
     image: rancher/load-balancer-service
+    expose:
+      - 80/tcp
     labels:
       io.rancher.container.agent.role: environmentAdmin
       io.rancher.container.create_agent: 'true'

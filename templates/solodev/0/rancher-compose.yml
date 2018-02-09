@@ -5,11 +5,6 @@
   uuid: solodev-0
   minimum_rancher_version: v1.0.0
   questions:
-    - variable: SOLODEV_PORT
-      description: "Port for Solodev Admin."
-      label: "Solodev Port"
-      required: true
-      type: "int"
     - variable: SOLODEV_USER
       description: "Creates the main Admin Solodev User."
       label: "Solodev User"

@@ -73,7 +73,8 @@ services:
       - 80/tcp
     links:
       - php-fpm-lb:php-fpm
-    command: ["/usr/local/apache/conf/wait-for-it.sh php-fpm:9000 -t 60 -- httpd-foreground"]
+    entrypoint: /usr/local/apache/conf/wait-for-it.sh php-fpm:9000 -t 60 --
+    command: ["httpd-foreground"]
     restart: always
 
   mysql:

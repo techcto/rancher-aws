@@ -93,6 +93,8 @@ RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
 	apk add --virtual $runDeps; \
 	rm -rf /tmp/pear/;
 
+RUN apk add --no-cache bash
+
 COPY php.ini /usr/local/etc/php/php.ini
 COPY php-fpm.conf /usr/local/etc/php-fpm.conf
 

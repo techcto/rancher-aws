@@ -2,8 +2,6 @@ FROM php:7.2.0-fpm-alpine3.7
 
 RUN echo "http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
 
-FROM php:7.1-fpm-alpine
-
 ENV XDEBUG_VERSION 2.4.1
 ENV MEMCACHE_VERSION 2.2.0
 ENV TIDY_VERSION=5.1.25
@@ -110,10 +108,3 @@ RUN composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-progress
 
 #Remove useless config
 RUN rm -rf /etc/php7/php-fpm.d
-
-WORKDIR /var/www
-
-#Set port
-EXPOSE 9000
-
-CMD ["php-fpm"]

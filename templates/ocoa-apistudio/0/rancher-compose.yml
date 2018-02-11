@@ -1,0 +1,104 @@
+.catalog:
+  name: "solodev"
+  version: "v8.4.2"
+  description: "A recommended stack for the MySQL RDBMS."
+  uuid: solodev-0
+  minimum_rancher_version: v1.0.0
+  questions:
+    - variable: SOLODEV_PORT
+      description: "Port for Solodev Admin."
+      label: "Solodev Port"
+      required: true
+      type: "int"
+      default: 101
+    - variable: SOLODEV_USER
+      description: "Creates the main Admin Solodev User."
+      label: "Solodev User"
+      default: solodev
+      required: true
+      type: "string"
+    - variable: SOLODEV_PASSWORD
+      description: "A password for the main Solodev Admin User."
+      default: password
+      label: "Solodev Password"
+      required: true
+      type: password
+    - variable: MYSQL_ROOT_PASSWORD
+      description: "The password that will be set for the MySQL root superuser account."
+      label: "MySQL Root Password"
+      required: true
+      default: password
+      type: password
+    - variable: MYSQL_DATABASE
+      description: "Specify the name of a database to be created on image startup."
+      label: "MySQL Database"
+      required: true
+      default: solodev
+      type: "string"
+    - variable: MYSQL_USER
+      description: "Creates an additional MySQL (super)user. MySQL Password must also be set."
+      label: "MySQL User"
+      default: solodev
+      required: true
+      type: "string"
+    - variable: MYSQL_PASSWORD
+      description: "A password for the additional MySQL (super)user. MySQL User must also be set."
+      label: "MySQL Password"
+      default: password
+      required: true
+      type: password
+
+php-fpm-lb:
+  scale: 3
+  labels:
+    io.rancher.container.agent.role: environmentAdmin,agent
+    io.rancher.container.agent_service.drain_provider: 'true'
+    io.rancher.container.create_agent: 'true'
+    io.rancher.lb_service.target: 'prefer-local'
+  health_check:
+    response_timeout: 2000
+    healthy_threshold: 2
+    port: 42
+    unhealthy_threshold: 3
+  start_on_create: true
+
+php-fpm:
+  scale: 3
+  start_on_create: true
+
+apache2-lb:
+  scale: 3
+  labels:
+    io.rancher.container.agent.role: environmentAdmin,agent
+    io.rancher.container.agent_service.drain_provider: 'true'
+    io.rancher.container.create_agent: 'true'
+    io.rancher.lb_service.target: 'prefer-local'
+    rap.host: '{{ .Stack.Name }}.awspress.com,apache2.{{ .Stack.Name }}.default.awspress.com'
+  lb_config:
+    certs: []
+    port_rules:
+    - protocol: http
+      service: apache2
+      source_port: ${SOLODEV_PORT}
+      target_port: 80
+  health_check:
+    response_timeout: 2000
+    healthy_threshold: 2
+    port: 42
+    unhealthy_threshold: 3
+  start_on_create: true
+
+apache2:
+  scale: 3
+  start_on_create: true
+  health_check:
+      port: 80
+      interval: 5000
+      unhealthy_threshold: 3
+      request_line: 'GET / HTTP/1.0'
+      healthy_threshold: 2
+      response_timeout: 5000
+
+mysql:
+  scale: 1
+  start_on_create: true

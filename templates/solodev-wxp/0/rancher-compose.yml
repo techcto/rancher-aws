@@ -5,12 +5,21 @@
   uuid: solodev-wxp-0
   minimum_rancher_version: v1.0.0
   questions:
+    - variable: APP_ENV
+      description: "Creates an additional MySQL (super)user. MySQL Password must also be set."
+      label: "Environment"
+      default: prod
+      required: true
+      type: enum   
+      options:
+        - dev
+        - prod
     - variable: SOLODEV_PORT
       description: "Port for Solodev Admin."
       label: "Solodev Port"
       required: true
       type: "int"
-      default: 101
+      default: 121
     - variable: SOLODEV_USER
       description: "Creates the main Admin Solodev User."
       label: "Solodev User"
@@ -45,6 +54,12 @@
       description: "A password for the additional MySQL (super)user. MySQL User must also be set."
       label: "MySQL Password"
       default: password
+      required: true
+      type: password
+    - variable: APP_SECRET
+      description: "A secret key for encryption."
+      label: "App Secret"
+      default: c5d3adbb98f43d650d12f0cc8fbcd7f8
       required: true
       type: password
 

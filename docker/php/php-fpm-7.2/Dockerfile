@@ -6,10 +6,6 @@ ENV XDEBUG_VERSION 2.4.1
 ENV MEMCACHE_VERSION 2.2.0
 ENV TIDY_VERSION=5.1.25
 
-RUN apk add --no-cache \
-		bash \
-		sed
-
 RUN set -ex; \
 	\
 	apk add --no-cache --virtual .build-deps \
@@ -30,6 +26,8 @@ RUN set -ex; \
 		libxslt-dev \
 		openldap-dev \
 		pcre-dev \
+		bash \
+		sed \
         make zip unzip wget curl cmake \
 	; 
 
@@ -92,8 +90,6 @@ RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
 	)"; \
 	apk add --virtual $runDeps; \
 	rm -rf /tmp/pear/;
-
-RUN apk add --no-cache bash
 
 COPY php.ini /usr/local/etc/php/php.ini
 COPY php-fpm.conf /usr/local/etc/php-fpm.conf

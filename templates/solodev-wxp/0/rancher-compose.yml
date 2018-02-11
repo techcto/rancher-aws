@@ -99,6 +99,31 @@ nginx:
       healthy_threshold: 2
       response_timeout: 5000
 
+react-lb:
+  scale: 3
+  labels:
+    io.rancher.container.agent.role: environmentAdmin,agent
+    io.rancher.container.agent_service.drain_provider: 'true'
+    io.rancher.container.create_agent: 'true'
+    io.rancher.lb_service.target: 'prefer-local'
+  health_check:
+    response_timeout: 2000
+    healthy_threshold: 2
+    port: 42
+    unhealthy_threshold: 3
+  start_on_create: true
+
+react:
+  scale: 3
+  start_on_create: true
+  health_check:
+      port: 3000
+      interval: 5000
+      unhealthy_threshold: 3
+      request_line: 'GET / HTTP/1.0'
+      healthy_threshold: 2
+      response_timeout: 5000
+
 mysql:
   scale: 1
   start_on_create: true

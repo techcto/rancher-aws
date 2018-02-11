@@ -99,6 +99,8 @@ services:
     labels:
       io.rancher.container.agent.role: environmentAdmin
       io.rancher.container.create_agent: 'true'
+    expose:
+      - 3000/tcp
     links:
       - react
     stdin_open: true

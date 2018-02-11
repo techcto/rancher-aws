@@ -89,7 +89,7 @@ services:
       - php-fpm-lb:php-fpm
       - react-lb:react
     entrypoint: /usr/local/bin/wait-for-it.sh php-fpm:9000 -t 60 --
-    command: ["httpd-foreground"]
+    command: ["nginx", "-g", "daemon off;"]
     restart: always
 
   react-lb:

@@ -1,5 +1,5 @@
-name: Spacemade CI Platform
+name: Spacemade CI
 description: |
-  Jenkins CI
+  Drone CI
 version: v0.0.1
 category: Infrastructure

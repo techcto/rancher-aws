@@ -33,6 +33,9 @@ RUN set -ex; \
         make zip unzip wget curl cmake \
 	; 
 
+RUN pecl install mcrypt-1.0.1;
+RUN docker-php-ext-enable mcrypt;
+
 RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
 	docker-php-ext-install \
 		bcmath \	
@@ -45,7 +48,6 @@ RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
 		imap \
 		intl \
 		ldap \
-		mcrypt \
 		mysqli \
 		opcache \
 		pdo_mysql \

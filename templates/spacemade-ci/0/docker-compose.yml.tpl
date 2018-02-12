@@ -20,16 +20,14 @@ services:
       io.rancher.scheduler.affinity:host_label: drone=server
   drone-agent:
     image: drone/drone:0.8-alpine
-    environment:
-      DRONE_SECRET: ${APP_SECRET}
-      DRONE_SERVER: ws://drone-server:8000/ws/broker
+    command: agent
+    restart: always
+    depends_on: [ drone-server ]
     volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-    command:
-    - agent
-    labels:
-      io.rancher.scheduler.affinity:host_label_ne: drone=server
-      io.rancher.scheduler.global: 'true'
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DRONE_SERVER=ws://drone-server:8000/ws/broker
+      - DRONE_SECRET=${DRONE_SECRET}
   mysql:
     image: mariadb
     command: --sql_mode=""

@@ -27,7 +27,7 @@ services:
     volume_driver: /var/jenkins_home
   jenkins-lb:
     ports:
-    - '8080'
+      - 80:8080
     tty: true
     image: rancher/load-balancer-service
     links:

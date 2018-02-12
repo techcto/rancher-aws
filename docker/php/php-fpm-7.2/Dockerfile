@@ -93,8 +93,8 @@ RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
 	apk add --virtual $runDeps; \
 	rm -rf /tmp/pear/;
 
-COPY php.ini /usr/local/etc/php/php.ini
-COPY php-fpm.conf /usr/local/etc/php-fpm.conf
+COPY ./php.ini /usr/local/etc/php/php.ini
+COPY ./php-fpm.conf /usr/local/etc/php-fpm.conf
 
 #Install Composer
 RUN curl -sS https://getcomposer.org/installer | \

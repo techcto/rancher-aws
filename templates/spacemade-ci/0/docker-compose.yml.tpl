@@ -12,13 +12,13 @@ services:
       DRONE_SECRET: ${APP_SECRET}
       DRONE_ADMIN: ${DRONE_ADMIN}
       DRONE_DATABASE_DRIVER: mysql
-      DRONE_DATABASE_DATASOURCE: ${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/drone?parseTime=true
+      DRONE_DATABASE_DATASOURCE: ${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(mysql:3306)/drone?parseTime=true
     volumes:
     - /drone:/var/lib/drone/
     ports:
     - 80:8000/tcp
     links:
-      - mysql
+    - mysql
     labels:
       io.rancher.scheduler.affinity:host_label: drone=server
   drone-agent:

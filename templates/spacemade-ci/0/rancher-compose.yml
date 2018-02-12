@@ -31,12 +31,12 @@
       description: "Specify the name of a database to be created on image startup."
       label: "MySQL Database"
       required: true
-      default: solodev
+      default: drone
       type: "string"
     - variable: MYSQL_USER
       description: "Creates an additional MySQL (super)user. MySQL Password must also be set."
       label: "MySQL User"
-      default: solodev
+      default: drone
       required: true
       type: "string"
     - variable: MYSQL_PASSWORD

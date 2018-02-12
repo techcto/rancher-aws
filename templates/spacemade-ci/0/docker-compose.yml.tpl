@@ -16,7 +16,9 @@ services:
     volumes:
     - /drone:/var/lib/drone/
     ports:
-    - 8080:8000/tcp
+    - 80:8000/tcp
+    links:
+      - mysql
     labels:
       io.rancher.scheduler.affinity:host_label: drone=server
   drone-agent:

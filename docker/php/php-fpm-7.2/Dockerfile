@@ -97,8 +97,16 @@ COPY php.ini /usr/local/etc/php/php.ini
 COPY php-fpm.conf /usr/local/etc/php-fpm.conf
 
 #Install Composer
-RUN curl -sS https://getcomposer.org/installer | \
-    php -- --install-dir=/usr/bin/ --filename=composer
+RUN EXPECTED_SIGNATURE=$(wget -q -O - https://composer.github.io/installer.sig) \
+	php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+	ACTUAL_SIGNATURE=$(php -r "echo hash_file('SHA384', 'composer-setup.php');") \
+	if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ] \
+	then \
+		>&2 echo 'ERROR: Invalid installer signature' \
+		rm composer-setup.php \
+	fi \
+	php -- --install-dir=/usr/bin/ --filename=composer \
+	rm composer-setup.php
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER 1

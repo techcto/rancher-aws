@@ -20,7 +20,7 @@ services:
     labels:
       io.rancher.scheduler.affinity:host_label: drone=server
   drone-agent:
-    image: drone/drone:0.8-alpine
+    image: drone/agent:0.8-alpine
     command: agent
     restart: always
     depends_on: [ drone-server ]

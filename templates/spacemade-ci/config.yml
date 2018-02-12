@@ -1,0 +1,5 @@
+name: Spacemade CI Platform
+description: |
+  Jenkins CI
+version: v0.0.1
+category: Infrastructure

@@ -8,10 +8,7 @@
 
 version: '2'
 services:
-  functions-ui:
-    scale: 1
-    start_on_create: true
-  api-lb:
+  jenkins-lb:
     scale: 1
     start_on_create: true
     lb_config:
@@ -19,15 +16,9 @@ services:
       port_rules:
       - priority: 1
         protocol: tcp
-        service: functions-worker
+        service: jenkins-master
         source_port: 8080
         target_port: 8080
-      - path: ''
-        priority: 2
-        protocol: tcp
-        service: functions-ui
-        source_port: 4000
-        target_port: 4000
     health_check:
       healthy_threshold: 2
       response_timeout: 2000
@@ -35,18 +26,3 @@ services:
       unhealthy_threshold: 3
       interval: 2000
       strategy: recreate
-  setup-dbuser:
-    scale: 1
-    start_on_create: true
-  functions-worker:
-    scale: 1
-    start_on_create: true
-  setup-db:
-    scale: 1
-    start_on_create: true
-  postgres:
-    scale: 1
-    start_on_create: true
-  redis:
-    scale: 1
-    start_on_create: true

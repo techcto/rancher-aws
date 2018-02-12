@@ -8,7 +8,7 @@ services:
       DRONE_BITBUCKET_CLIENT: ${DRONE_BITBUCKET_CLIENT}
       DRONE_BITBUCKET_SECRET: ${DRONE_BITBUCKET_SECRET}
       DRONE_OPEN: 'true'
-      DRONE_HOST: drone-server
+      DRONE_HOST: http://drone-server
       DRONE_SECRET: ${APP_SECRET}
       DRONE_ADMIN: ${DRONE_ADMIN}
       DRONE_DATABASE_DRIVER: mysql

@@ -1,5 +1,0 @@
-name: Spacemade CI
-description: |
-  Drone CI
-version: v0.0.1
-category: Infrastructure

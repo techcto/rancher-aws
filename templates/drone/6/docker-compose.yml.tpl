@@ -1,5 +1,16 @@
 version: '2'
 services:
+  mysql:
+    image: mariadb
+    command: --sql_mode=""
+    environment:
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_USER: '${MYSQL_USER}'
+    restart: always
+    volumes:
+      - wxp-mysql:/var/lib/mysql:rw
   agent:
     image: drone/agent:${drone_version}
     environment:
@@ -114,15 +125,3 @@ services:
     labels:
       io.rancher.scheduler.global: 'true'
       io.rancher.scheduler.affinity:host_label_soft: ${drone_lb_host_label}
-
-  mysql:
-    image: mariadb
-    command: --sql_mode=""
-    environment:
-      MYSQL_DATABASE: '${MYSQL_DATABASE}'
-      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
-      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
-      MYSQL_USER: '${MYSQL_USER}'
-    restart: always
-    volumes:
-      - wxp-mysql:/var/lib/mysql:rw

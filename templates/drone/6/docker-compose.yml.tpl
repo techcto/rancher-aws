@@ -31,12 +31,12 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     links:
-      - drone:drone
+      - drone-lb:drone
     command:
       - agent
     labels:
-      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
-      io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label_ne: drone=server
+      io.rancher.scheduler.global: 'true'
   drone:
     image: drone/drone:${drone_version}
     links:
@@ -98,8 +98,7 @@ services:
       no_proxy: ${no_proxy}
 {{- end}}
     labels:
-      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
-      io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label: drone=server
   drone-lb:
     restart: always
     tty: true

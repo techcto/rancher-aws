@@ -110,5 +110,5 @@ services:
       io.rancher.container.agent.role: environmentAdmin
       io.rancher.container.create_agent: 'true'
     links:
-      - nginx
+      - drone
     stdin_open: true

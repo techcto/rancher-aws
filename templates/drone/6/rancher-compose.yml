@@ -192,7 +192,7 @@ services:
       port_rules:
       - priority: 1
         protocol: http
-        service: server
+        service: drone
         source_port: ${host_port}
         target_port: 8000
     health_check:

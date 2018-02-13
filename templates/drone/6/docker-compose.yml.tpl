@@ -14,7 +14,7 @@ services:
   drone-agent:
     image: drone/agent:0.8-alpine
     environment:
-      DRONE_SERVER: ws://drone-server:8000
+      DRONE_SERVER: DRONE_SERVER=ws://drone-server:8000/ws/broker
       DRONE_SECRET: ${drone_secret}
 {{- if (.Values.http_proxy)}}
       HTTP_PROXY: ${http_proxy}
@@ -31,18 +31,19 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     links:
-      - drone-lb:drone
+      - drone-lb:drone-server
+    depends_on: [ drone-server ]
     command:
       - agent
     labels:
       io.rancher.scheduler.affinity:host_label_ne: drone=server
       io.rancher.scheduler.global: 'true'
-  drone:
+  drone-server:
     image: drone/drone:0.8-alpine
     links:
       - mysql
     environment:
-      DRONE_HOST: ${drone_host}
+      DRONE_HOST: http://drone-server
       GIN_MODE: ${gin_mode}
 {{- if (.Values.drone_debug)}}
       DRONE_DEBUG: '${drone_debug}'

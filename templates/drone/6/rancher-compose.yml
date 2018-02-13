@@ -168,7 +168,7 @@ services:
   drone-agent:
     scale: ${agent_scale}
     start_on_create: true
-  drone:
+  drone-server:
     scale: 1
     start_on_create: true
     health_check:
@@ -192,7 +192,7 @@ services:
       port_rules:
       - priority: 1
         protocol: http
-        service: drone
+        service: drone-server
         source_port: ${host_port}
         target_port: 8000
     health_check:

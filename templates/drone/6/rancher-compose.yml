@@ -21,7 +21,7 @@ catalog:
       label: Drone Agent Scale
       description: Drone agent scale to deploy
       required: true
-      default: 1
+      default: 3
       type: int
     - variable: drone_secret
       label: Server and Agents Secret

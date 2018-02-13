@@ -34,7 +34,7 @@ services:
     command:
       - agent
     labels:
-      io.rancher.scheduler.affinity:host_label_ne: drone-server
+      io.rancher.scheduler.affinity:host_label_ne: drone=server
       io.rancher.scheduler.global: 'true'
   drone-server:
     image: drone/drone:0.8-alpine
@@ -102,7 +102,7 @@ services:
       no_proxy: ${no_proxy}
 {{- end}}
     labels:
-      io.rancher.scheduler.affinity:host_label: drone-server
+      io.rancher.scheduler.affinity:host_label: drone=server
   drone-lb:
     restart: always
     tty: true

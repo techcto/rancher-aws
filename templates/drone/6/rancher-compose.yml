@@ -98,7 +98,7 @@ catalog:
       label: Drone Server
       description: "Drone sever identifier. Used by the agent to connect to the server (does not require change)."
       type: string
-      default: "drone:9000"
+      default: "drone-server:9000"
     - variable: drone_version
       label: Drone Version
       description: "Drone version/Docker tag used for the Drone container images."

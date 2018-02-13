@@ -41,7 +41,7 @@ services:
     links:
       - mysql
     ports:
-      - 8000:8000/tcp
+      - 8000/tcp
       - 9000/tcp
     volumes:
       - /var/lib/drone:/var/lib/drone

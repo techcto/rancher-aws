@@ -14,29 +14,27 @@ services:
   drone-agent:
     image: drone/agent:0.8-alpine
     environment:
-      DRONE_SERVER: DRONE_SERVER=drone-server:8000
-      DRONE_SECRET: ${drone_secret}
+      - DRONE_SERVER=drone-server:9000
+      - DRONE_SECRET=${drone_secret}
 {{- if (.Values.http_proxy)}}
-      HTTP_PROXY: ${http_proxy}
-      http_proxy: ${http_proxy}
+      - HTTP_PROXY=${http_proxy}
+      - http_proxy=${http_proxy}
 {{- end}}
 {{- if (.Values.https_proxy)}}
-      HTTPS_PROXY: ${https_proxy}
-      https_proxy: ${https_proxy}
+      - HTTPS_PROXY=${https_proxy}
+      - https_proxy=${https_proxy}
 {{- end}}
 {{- if (.Values.no_proxy)}}
-      NO_PROXY: ${no_proxy}
-      no_proxy: ${no_proxy}
+      - NO_PROXY- ${no_proxy}
+      - no_proxy=${no_proxy}
 {{- end}}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    links:
-      - drone-lb:drone-server
     depends_on: [ drone-server ]
     command:
       - agent
     labels:
-      io.rancher.scheduler.affinity:host_label_ne: drone:server
+      io.rancher.scheduler.affinity:host_label_ne: drone-server
       io.rancher.scheduler.global: 'true'
   drone-server:
     image: drone/drone:0.8-alpine
@@ -44,6 +42,9 @@ services:
       - mysql
     ports:
       - 80:8000/tcp
+      - 9000/tcp
+    volumes:
+      - /var/lib/drone:/var/lib/drone
     environment:
       DRONE_HOST: http://drone-server
       GIN_MODE: ${gin_mode}
@@ -101,7 +102,7 @@ services:
       no_proxy: ${no_proxy}
 {{- end}}
     labels:
-      io.rancher.scheduler.affinity:host_label: drone:server
+      io.rancher.scheduler.affinity:host_label: drone-server
   drone-lb:
     restart: always
     tty: true

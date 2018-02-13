@@ -35,7 +35,6 @@ services:
       - agent
     labels:
       io.rancher.scheduler.affinity:host_label_ne: drone=server
-      io.rancher.scheduler.global: 'true'
   drone-server:
     image: drone/drone:0.8-alpine
     links:

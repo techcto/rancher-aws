@@ -12,9 +12,9 @@ services:
     volumes:
       - wxp-mysql:/var/lib/mysql:rw
   drone-agent:
-    image: drone/agent:${drone_version}
+    image: drone/agent:0.8-alpine
     environment:
-      DRONE_SERVER: ${drone_server}
+      DRONE_SERVER: ws://drone-server:8000
       DRONE_SECRET: ${drone_secret}
 {{- if (.Values.http_proxy)}}
       HTTP_PROXY: ${http_proxy}
@@ -38,7 +38,7 @@ services:
       io.rancher.scheduler.affinity:host_label_ne: drone=server
       io.rancher.scheduler.global: 'true'
   drone:
-    image: drone/drone:${drone_version}
+    image: drone/drone:0.8-alpine
     links:
       - mysql
     environment:

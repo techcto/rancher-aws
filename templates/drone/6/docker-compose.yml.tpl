@@ -14,7 +14,7 @@ services:
   drone-agent:
     image: drone/agent:0.8-alpine
     environment:
-      DRONE_SERVER: DRONE_SERVER=ws://drone-server:8000/ws/broker
+      DRONE_SERVER: DRONE_SERVER=drone-server:8000
       DRONE_SECRET: ${drone_secret}
 {{- if (.Values.http_proxy)}}
       HTTP_PROXY: ${http_proxy}
@@ -33,6 +33,8 @@ services:
     links:
       - drone-lb:drone-server
     depends_on: [ drone-server ]
+    ports:
+      - 80:8000/tcp
     command:
       - agent
     labels:

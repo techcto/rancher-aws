@@ -149,7 +149,7 @@ catalog:
       label: No Proxy
       description: "Optional: No proxy hosts (comma-separated hostnames/IPs)."
       required: false
-      default: "drone"
+      default: "drone-server"
     - variable: "drone_debug"
       label: Drone Debug
       description: "Enable debug output with the Drone server."

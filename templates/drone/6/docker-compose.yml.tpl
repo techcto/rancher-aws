@@ -41,7 +41,7 @@ services:
     links:
       - mysql
     ports:
-      - 80:8000/tcp
+      - 8000:8000/tcp
       - 9000/tcp
     volumes:
       - /var/lib/drone:/var/lib/drone
@@ -108,7 +108,7 @@ services:
     tty: true
     image: rancher/load-balancer-service
     ports:
-      - ${host_port}:${host_port}
+      - 80:${host_port}
     labels:
       io.rancher.container.agent.role: environmentAdmin
       io.rancher.container.create_agent: 'true'

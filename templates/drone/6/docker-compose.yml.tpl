@@ -33,8 +33,6 @@ services:
     links:
       - drone-lb:drone-server
     depends_on: [ drone-server ]
-    ports:
-      - 80:8000/tcp
     command:
       - agent
     labels:
@@ -44,6 +42,8 @@ services:
     image: drone/drone:0.8-alpine
     links:
       - mysql
+    ports:
+      - 80:8000/tcp
     environment:
       DRONE_HOST: http://drone-server
       GIN_MODE: ${gin_mode}

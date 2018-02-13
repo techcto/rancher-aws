@@ -1,5 +1,5 @@
-name: Drone
+name: Spacemade Drone CI
 description: |
-    Drone CI Server
+    Spacemade Drone CI Server
 version: 0.8.2-rancher1
 category: Continuous Integration

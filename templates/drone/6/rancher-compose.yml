@@ -1,10 +1,10 @@
 version: 2
 catalog:
-  name: Drone
+  name: Spacemade Drone CI
   version: 0.8.2-rancher1
   upgrade_from: 0.8.2-rc.1-rancher1
   description: |
-    Drone CI Server ref http://readme.drone.io/admin/installation-guide/
+    Spacemade Drone CI Server ref http://readme.drone.io/admin/installation-guide/
   questions:
     - variable: drone_host
       label: Drone Host URL
@@ -165,10 +165,10 @@ catalog:
       default: "drone_lb=true"
       type: string
 services:
-  agent:
+  drone-agent:
     scale: ${agent_scale}
     start_on_create: true
-  server:
+  drone:
     scale: 1
     start_on_create: true
     health_check:
@@ -179,8 +179,14 @@ services:
       request_line: GET / HTTP/1.0
       healthy_threshold: 2
       response_timeout: 2000
-  lb:
-    start_on_create: true
+  drone-lb:
+    scale: 3
+    labels:
+      io.rancher.container.agent.role: environmentAdmin,agent
+      io.rancher.container.agent_service.drain_provider: 'true'
+      io.rancher.container.create_agent: 'true'
+      io.rancher.lb_service.target: 'prefer-local'
+      rap.host: '{{ .Stack.Name }}.spacemade.com,nginx.{{ .Stack.Name }}.default.spacemade.com'
     lb_config:
       certs: []
       port_rules:
@@ -190,9 +196,8 @@ services:
         source_port: ${host_port}
         target_port: 8000
     health_check:
-      healthy_threshold: 2
       response_timeout: 2000
+      healthy_threshold: 2
       port: 42
       unhealthy_threshold: 3
-      interval: 2000
-      strategy: recreate
+    start_on_create: true

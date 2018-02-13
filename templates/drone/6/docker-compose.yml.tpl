@@ -28,6 +28,8 @@ services:
       io.rancher.container.hostname_override: container_name
   server:
     image: drone/drone:${drone_version}
+    links:
+      - mysql
     environment:
       DRONE_HOST: ${drone_host}
       GIN_MODE: ${gin_mode}
@@ -70,10 +72,8 @@ services:
       DRONE_GOGS: true
       DRONE_GOGS_URL: ${drone_driver_url}
 {{- end}}
-{{- if ne .Values.database_driver "sqlite"}}
-      DRONE_DATABASE_DRIVER: ${database_driver}
-      DRONE_DATABASE_DATASOURCE: ${database_source}
-{{- end}}
+      DRONE_DATABASE_DRIVER: mysql
+      DRONE_DATABASE_DATASOURCE: ${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(mysql:3306)/drone?parseTime=true
 {{- if (.Values.http_proxy)}}
       HTTP_PROXY: ${http_proxy}
       http_proxy: ${http_proxy}
@@ -114,3 +114,15 @@ services:
     labels:
       io.rancher.scheduler.global: 'true'
       io.rancher.scheduler.affinity:host_label_soft: ${drone_lb_host_label}
+
+  mysql:
+    image: mariadb
+    command: --sql_mode=""
+    environment:
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_USER: '${MYSQL_USER}'
+    restart: always
+    volumes:
+      - wxp-mysql:/var/lib/mysql:rw

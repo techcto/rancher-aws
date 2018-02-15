@@ -2,7 +2,6 @@ FROM php:7.2.0-fpm-alpine3.7
 
 RUN echo "http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
 
-ENV XDEBUG_VERSION 2.4.1
 ENV MEMCACHE_VERSION 2.2.0
 ENV TIDY_VERSION=5.1.25
 
@@ -72,6 +71,7 @@ RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
         mongodb \
         oauth \
 		redis \
+		xdebug \
 	; \
 	echo "\n" | pecl install ssh2-1.0; \
 	docker-php-ext-enable --ini-name pecl.ini \

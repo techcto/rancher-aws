@@ -96,6 +96,12 @@ RUN docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
 	apk add --virtual $runDeps; \
 	rm -rf /tmp/pear/;
 
+#Install Composer
+COPY docker/php/composer.sh ./composer.sh
+RUN sh composer.sh --install-dir=/usr/local/bin --filename=composer \
+    && composer global require "hirak/prestissimo:^0.3" \
+    && rm -rf composer.sh
+
 COPY ./php.ini /usr/local/etc/php/php.ini
 COPY ./php-fpm.conf /usr/local/etc/php-fpm.conf
 

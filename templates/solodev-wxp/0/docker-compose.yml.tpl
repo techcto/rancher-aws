@@ -110,7 +110,7 @@ services:
     image: solodev/wxp-react
 
   mysql:
-    image: mariadb
+    image: mysql:5.7.20
     command: --sql_mode=""
     environment:
       MYSQL_DATABASE: '${MYSQL_DATABASE}'
@@ -122,7 +122,7 @@ services:
       - wxp-mysql:/var/lib/mysql:rw
 
   mongo:
-    image: 'mongo:3.0'
+    image: 'mongo:3.6'
     environment:
       MONGO_INITDB_ROOT_USERNAME: '${MYSQL_USER}'
       MONGO_INITDB_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'

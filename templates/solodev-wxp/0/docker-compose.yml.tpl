@@ -50,7 +50,7 @@ services:
       SOLODEV_USER: '${SOLODEV_USER}'
       SOLODEV_PASSWORD: '${SOLODEV_PASSWORD}'
       APP_ENV: '${APP_ENV}'
-      APP_DEBUG: "0"
+      APP_DEBUG: 0
       APP_SECRET: '${APP_SECRET}'
       DATABASE_URL: 'mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:${MYSQL_PORT}/solodev'
     labels:

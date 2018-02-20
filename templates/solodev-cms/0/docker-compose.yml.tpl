@@ -89,7 +89,7 @@ services:
     restart: always
 
   mysql:
-    image: mariadb
+    image: mysql:5.7.20
     command: --sql_mode=""
     environment:
       MYSQL_DATABASE: '${MYSQL_DATABASE}'

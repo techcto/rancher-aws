@@ -88,7 +88,7 @@ Parameters:
     VolumeSize:
         Description: Size in GB of additional non-root volume
         Type: String
-        Default: '128'
+        Default: '256'
         AllowedValues:
         - '8'
         - '16'
@@ -185,7 +185,8 @@ Resources:
                 - IpProtocol: tcp
                   FromPort: 0
                   ToPort: 65535
-                  SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
+                  CidrIp: "0.0.0.0/0"
+                  #SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
                 - IpProtocol: tcp
                   FromPort: 2379
                   ToPort: 2380
@@ -212,7 +213,7 @@ Resources:
                   Value: !Sub ${EnvironmentName}-ECS-Hosts
         
     ECSLaunchConfiguration:
-        Type: AWS::AutoScaling:: 
+        Type: AWS::AutoScaling::LaunchConfiguration
         Properties:
             ImageId:  !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMI]
             InstanceType: !Ref InstanceType
@@ -244,8 +245,8 @@ Resources:
                     - "standard"
                     rancherhost:
                     - "efs"  
-                    - "rancherhost" 
-                    - "standard"                    
+                    - "standard"                  
+                    - "rancherhost"   
                 standard:
                     files:
                         "/etc/cfn/cfn-hup.conf":
@@ -272,8 +273,16 @@ Resources:
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
                     commands:
-                        01_add_instance_to_cluster:
+                        add_instance_to_cluster:
                             command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+                        change_cluster_storage_driver:
+                            command: !Sub echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
+                        storage_opt_hack:
+                            command: !Sub echo 'OPTIONS="${OPTIONS} --storage-opt dm.basesize=99999G"' >> /etc/sysconfig/docker
+                        restart_docker:
+                            command: !Sub service docker restart
+                        update_ecs:
+                            command: !Sub yum update -y ecs-init
                 efs:
                     packages:
                         yum:

@@ -80,6 +80,9 @@ php-fpm-lb:
 php-fpm:
   scale: 3
   start_on_create: true
+  labels:
+    software: wxp
+    branch: develop
 
 nginx-lb:
   scale: 3
@@ -105,6 +108,9 @@ nginx-lb:
 
 nginx:
   scale: 3
+  labels:
+    software: wxp-nginx
+    branch: develop
   start_on_create: true
   health_check:
       port: 80
@@ -130,14 +136,17 @@ react-lb:
 
 react:
   scale: 3
+  labels:
+    software: wxp-react
+    branch: develop
   start_on_create: true
   health_check:
-      port: 3000
-      interval: 5000
-      unhealthy_threshold: 3
-      request_line: 'GET / HTTP/1.0'
-      healthy_threshold: 2
-      response_timeout: 5000
+    port: 3000
+    interval: 5000
+    unhealthy_threshold: 3
+    request_line: 'GET / HTTP/1.0'
+    healthy_threshold: 2
+    response_timeout: 5000
 
 mysql:
   scale: 1

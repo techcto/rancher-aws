@@ -85,7 +85,23 @@ Parameters:
         Type: String
         Default: ""
 
-    VolumeSize:
+    HostVolumeSize:
+        Description: Size in GB of additional non-root volume
+        Type: String
+        Default: '128'
+        AllowedValues:
+        - '8'
+        - '16'
+        - '32'
+        - '64'
+        - '128'
+        - '256'
+        - '512'
+        - '1024'
+        - '2048'
+        - '4096'
+
+    BlockVolumeSize:
         Description: Size in GB of additional non-root volume
         Type: String
         Default: '256'
@@ -223,9 +239,13 @@ Resources:
             KeyName: !Ref KeyName
             AssociatePublicIpAddress: true
             BlockDeviceMappings:
+            - DeviceName: /dev/xvda
+              Ebs:
+                VolumeSize: !Ref HostVolumeSize
+                DeleteOnTermination: 'true'
             - DeviceName: /dev/xvdb
               Ebs:
-                VolumeSize: !Ref VolumeSize
+                VolumeSize: !Ref BlockVolumeSize
                 DeleteOnTermination: 'true'
             UserData: 
                 "Fn::Base64": !Sub |
@@ -278,7 +298,7 @@ Resources:
                         change_cluster_storage_driver:
                             command: !Sub echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
                         storage_opt_hack:
-                            command: !Sub echo 'OPTIONS="${OPTIONS} --storage-opt dm.basesize=99999G"' >> /etc/sysconfig/docker
+                            command: !Sub echo 'OPTIONS="${!OPTIONS} --storage-opt dm.basesize=99999G"' >> /etc/sysconfig/docker
                         restart_docker:
                             command: !Sub service docker restart
                         update_ecs:

@@ -34,7 +34,6 @@ services:
     labels:
       io.rancher.container.agent.role: environmentAdmin
       io.rancher.container.create_agent: 'true'
-      io.rancher.scheduler.global: 'true'
     links:
       - php-fpm
     stdin_open: true
@@ -57,7 +56,6 @@ services:
     labels:
       io.rancher.container.network: true
       io.rancher.container.pull_image: always
-      io.rancher.scheduler.global: 'true'
     volumes:
       - wxp-client:/var/www/solodev/fs
       - session:/var/lib/php/session
@@ -77,7 +75,6 @@ services:
     labels:
       io.rancher.container.agent.role: environmentAdmin
       io.rancher.container.create_agent: 'true'
-      io.rancher.scheduler.global: 'true'
     links:
       - nginx
     stdin_open: true
@@ -87,7 +84,6 @@ services:
     labels:
       io.rancher.container.network: true
       io.rancher.container.pull_image: always
-      io.rancher.scheduler.global: 'true'
     volumes:
       - wxp-client:/var/www/solodev/fs
     links:
@@ -117,9 +113,11 @@ services:
     image: rancher/load-balancer-service
     ports:
       - ${MYSQL_PORT}:${MYSQL_PORT}
-  
+
   mysql-data:
     image: busybox
+    labels:
+      io.rancher.container.start_once: true
     volumes:
       - wxp-mysql:/var/lib/mysql:rw
 
@@ -134,7 +132,6 @@ services:
     stdin_open: true
     labels:
       io.rancher.sidekicks: mysql-data
-      io.rancher.scheduler.global: 'true'
     volumes_from:
       - mysql-data
 

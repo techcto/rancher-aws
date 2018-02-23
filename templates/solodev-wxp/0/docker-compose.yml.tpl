@@ -109,20 +109,34 @@ services:
   react:
     image: solodev/wxp-react:develop
 
+  mysql-lb:
+    image: rancher/load-balancer-service
+    ports:
+      - ${MYSQL_PORT}:${MYSQL_PORT}
+  
+  mysql-data:
+    image: busybox
+    labels:
+      io.rancher.container.start_once: true
+    volumes:
+      - wxp-mysql:/var/lib/mysql:rw
+
   mysql:
     image: mysql:5.7.20
-    command: --sql_mode=""
     environment:
       MYSQL_DATABASE: '${MYSQL_DATABASE}'
       MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
       MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
       MYSQL_USER: '${MYSQL_USER}'
-    restart: always
-    volumes:
-      - wxp-mysql:/var/lib/mysql:rw
+    tty: true
+    stdin_open: true
+    labels:
+      io.rancher.sidekicks: mysql-data
+    volumes_from:
+      - mysql-data
 
   mongo:
-    image: 'mongo:3.6'
+    image: mongo:3.6
     environment:
       MONGO_INITDB_ROOT_USERNAME: '${MYSQL_USER}'
       MONGO_INITDB_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'

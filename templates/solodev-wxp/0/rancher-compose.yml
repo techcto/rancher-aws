@@ -56,6 +56,12 @@
       default: password
       required: true
       type: password
+    - variable: MYSQL_PORT
+      description: "Public port for access to MySQL through the load balancer"
+      label: "MySQL Public LB Port"
+      required: true
+      default: 3306
+      type: "int"
     - variable: APP_SECRET
       description: "A secret key for encryption."
       label: "App Secret"
@@ -64,7 +70,7 @@
       type: password
 
 php-fpm-lb:
-  scale: 3
+  scale: 2
   labels:
     io.rancher.container.agent.role: environmentAdmin,agent
     io.rancher.container.agent_service.drain_provider: 'true'
@@ -78,14 +84,14 @@ php-fpm-lb:
   start_on_create: true
 
 php-fpm:
-  scale: 3
+  scale: 2
   start_on_create: true
   labels:
     software: wxp
     branch: develop
 
 nginx-lb:
-  scale: 3
+  scale: 2
   labels:
     io.rancher.container.agent.role: environmentAdmin,agent
     io.rancher.container.agent_service.drain_provider: 'true'
@@ -107,7 +113,7 @@ nginx-lb:
   start_on_create: true
 
 nginx:
-  scale: 3
+  scale: 2
   labels:
     software: wxp-nginx
     branch: develop
@@ -121,7 +127,7 @@ nginx:
       response_timeout: 5000
 
 react-lb:
-  scale: 3
+  scale: 2
   labels:
     io.rancher.container.agent.role: environmentAdmin,agent
     io.rancher.container.agent_service.drain_provider: 'true'
@@ -135,7 +141,7 @@ react-lb:
   start_on_create: true
 
 react:
-  scale: 3
+  scale: 2
   labels:
     software: wxp-react
     branch: develop
@@ -148,6 +154,35 @@ react:
     healthy_threshold: 2
     response_timeout: 5000
 
-mysql:
-  scale: 1
-  start_on_create: true
+  mysql-lb:
+    scale: 3
+    start_on_create: true
+    lb_config:
+      certs: []
+      port_rules:
+      - protocol: tcp
+        service: mysql
+        source_port: ${mysql_lb_port}
+        target_port: 3306
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 42
+      unhealthy_threshold: 3
+      interval: 2000
+      strategy: recreate
+
+  mysql:
+    scale: 2
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 3306
+      unhealthy_threshold: 3
+      interval: 2000
+      strategy: recreate
+
+  mysql-data:
+    scale: 2
+    start_on_create: true

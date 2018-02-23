@@ -104,7 +104,6 @@ services:
     labels:
       io.rancher.container.agent.role: environmentAdmin
       io.rancher.container.create_agent: 'true'
-      io.rancher.scheduler.global: 'true'
     expose:
       - 3000/tcp
     links:
@@ -113,20 +112,14 @@ services:
 
   react:
     image: solodev/wxp-react:develop
-    labels:
-      io.rancher.scheduler.global: 'true'
 
   mysql-lb:
     image: rancher/load-balancer-service
-    labels:
-      io.rancher.scheduler.global: 'true'
     ports:
       - ${MYSQL_PORT}:${MYSQL_PORT}
   
   mysql-data:
     image: busybox
-    labels:
-      io.rancher.container.start_once: true
     volumes:
       - wxp-mysql:/var/lib/mysql:rw
 

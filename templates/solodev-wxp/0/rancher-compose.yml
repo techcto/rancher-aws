@@ -75,7 +75,6 @@ php-fpm-lb:
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
-    io.rancher.scheduler.global: 'true'
   health_check:
     response_timeout: 2000
     healthy_threshold: 2
@@ -88,7 +87,6 @@ php-fpm:
   labels:
     software: wxp
     branch: develop
-    io.rancher.scheduler.global: 'true'
 
 nginx-lb:
   labels:
@@ -96,7 +94,6 @@ nginx-lb:
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
-    io.rancher.scheduler.global: 'true'
     rap.host: '{{ .Stack.Name }}.awspress.com,nginx.{{ .Stack.Name }}.default.awspress.com'
   lb_config:
     certs: []
@@ -116,7 +113,6 @@ nginx:
   labels:
     software: wxp-nginx
     branch: develop
-    io.rancher.scheduler.global: 'true'
   start_on_create: true
   health_check:
       port: 80
@@ -132,7 +128,6 @@ react-lb:
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
-    io.rancher.scheduler.global: 'true'
   health_check:
     response_timeout: 2000
     healthy_threshold: 2
@@ -155,8 +150,6 @@ react:
     response_timeout: 5000
 
   mysql-lb:
-    labels:
-      io.rancher.scheduler.global: 'true'
     start_on_create: true
     lb_config:
       certs: []
@@ -174,8 +167,6 @@ react:
       strategy: recreate
 
   mysql:
-    labels:
-      io.rancher.scheduler.global: 'true'
     start_on_create: true
     health_check:
       healthy_threshold: 2
@@ -186,6 +177,4 @@ react:
       strategy: recreate
 
   mysql-data:
-    labels:
-      io.rancher.scheduler.global: 'true'
     start_on_create: true

@@ -153,7 +153,7 @@ react:
     request_line: 'GET / HTTP/1.0'
     healthy_threshold: 2
     response_timeout: 5000
-
+    
 mysql-lb:
   labels:
     io.rancher.scheduler.global: 'true'

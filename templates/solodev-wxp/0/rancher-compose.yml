@@ -155,7 +155,7 @@ react:
     response_timeout: 5000
 
 mysql-lb:
-  scale: 3
+  scale: 1
   start_on_create: true
   lb_config:
     certs: []
@@ -173,7 +173,7 @@ mysql-lb:
     strategy: recreate
 
 mysql:
-  scale: 2
+  scale: 1
   start_on_create: true
   health_check:
     healthy_threshold: 2

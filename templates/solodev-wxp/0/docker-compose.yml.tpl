@@ -60,7 +60,7 @@ services:
       - wxp-client:/var/www/solodev/fs
       - session:/var/lib/php/session
     links:
-      - mysql
+      - mysql-lb:mysql
       - mongo
     depends_on:
       - mysql
@@ -116,14 +116,16 @@ services:
     labels:
       io.rancher.container.agent.role: environmentAdmin
       io.rancher.container.create_agent: 'true'
-    expose:
-      - ${MYSQL_PORT}/tcp
+    ports:
+      - ${MYSQL_PORT}:${MYSQL_PORT}
     links:
       - mysql
-    stdin_open: true
 
   mysql:
     image: mysql:5.7.20
+    labels:
+      io.rancher.container.network: true
+      io.rancher.container.pull_image: always
     environment:
       MYSQL_DATABASE: '${MYSQL_DATABASE}'
       MYSQL_PASSWORD: '${MYSQL_PASSWORD}'

@@ -70,12 +70,12 @@
       type: password
 
 php-fpm-lb:
-  scale: 2
   labels:
     io.rancher.container.agent.role: environmentAdmin,agent
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
+    io.rancher.scheduler.global: 'true'
   health_check:
     response_timeout: 2000
     healthy_threshold: 2
@@ -84,19 +84,19 @@ php-fpm-lb:
   start_on_create: true
 
 php-fpm:
-  scale: 2
   start_on_create: true
   labels:
     software: wxp
     branch: develop
+    io.rancher.scheduler.global: 'true'
 
 nginx-lb:
-  scale: 2
   labels:
     io.rancher.container.agent.role: environmentAdmin,agent
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
+    io.rancher.scheduler.global: 'true'
     rap.host: '{{ .Stack.Name }}.awspress.com,nginx.{{ .Stack.Name }}.default.awspress.com'
   lb_config:
     certs: []
@@ -113,10 +113,10 @@ nginx-lb:
   start_on_create: true
 
 nginx:
-  scale: 2
   labels:
     software: wxp-nginx
     branch: develop
+    io.rancher.scheduler.global: 'true'
   start_on_create: true
   health_check:
       port: 80
@@ -127,12 +127,12 @@ nginx:
       response_timeout: 5000
 
 react-lb:
-  scale: 2
   labels:
     io.rancher.container.agent.role: environmentAdmin,agent
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
+    io.rancher.scheduler.global: 'true'
   health_check:
     response_timeout: 2000
     healthy_threshold: 2
@@ -141,8 +141,8 @@ react-lb:
   start_on_create: true
 
 react:
-  scale: 2
   labels:
+    io.rancher.scheduler.global: 'true'
     software: wxp-react
     branch: develop
   start_on_create: true
@@ -155,7 +155,8 @@ react:
     response_timeout: 5000
 
   mysql-lb:
-    scale: 3
+    labels:
+      io.rancher.scheduler.global: 'true'
     start_on_create: true
     lb_config:
       certs: []
@@ -173,7 +174,8 @@ react:
       strategy: recreate
 
   mysql:
-    scale: 2
+    labels:
+      io.rancher.scheduler.global: 'true'
     start_on_create: true
     health_check:
       healthy_threshold: 2
@@ -184,5 +186,6 @@ react:
       strategy: recreate
 
   mysql-data:
-    scale: 2
+    labels:
+      io.rancher.scheduler.global: 'true'
     start_on_create: true

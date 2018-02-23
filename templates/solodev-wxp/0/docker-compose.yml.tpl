@@ -110,16 +110,17 @@ services:
     image: solodev/wxp-react:develop
 
   mysql-lb:
+    restart: always
+    tty: true
     image: rancher/load-balancer-service
-    ports:
-      - ${MYSQL_PORT}:${MYSQL_PORT}
-
-  mysql-data:
-    image: busybox
     labels:
-      io.rancher.container.start_once: true
-    volumes:
-      - wxp-mysql:/var/lib/mysql:rw
+      io.rancher.container.agent.role: environmentAdmin
+      io.rancher.container.create_agent: 'true'
+    expose:
+      - ${MYSQL_PORT}/tcp
+    links:
+      - mysql
+    stdin_open: true
 
   mysql:
     image: mysql:5.7.20
@@ -130,10 +131,8 @@ services:
       MYSQL_USER: '${MYSQL_USER}'
     tty: true
     stdin_open: true
-    labels:
-      io.rancher.sidekicks: mysql-data
-    volumes_from:
-      - mysql-data
+    volumes:
+      - wxp-mysql:/var/lib/mysql:rw
 
   mongo:
     image: mongo:3.6

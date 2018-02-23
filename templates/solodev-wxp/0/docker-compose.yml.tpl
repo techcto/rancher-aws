@@ -60,7 +60,7 @@ services:
       - wxp-client:/var/www/solodev/fs
       - session:/var/lib/php/session
     links:
-      - mysql-lb:mysql
+      - mysql
       - mongo
     depends_on:
       - mysql
@@ -108,18 +108,6 @@ services:
 
   react:
     image: solodev/wxp-react:develop
-
-  mysql-lb:
-    restart: always
-    tty: true
-    image: rancher/load-balancer-service
-    labels:
-      io.rancher.container.agent.role: environmentAdmin
-      io.rancher.container.create_agent: 'true'
-    ports:
-      - ${MYSQL_PORT}:${MYSQL_PORT}
-    links:
-      - mysql
 
   mysql:
     image: mysql:5.7.20

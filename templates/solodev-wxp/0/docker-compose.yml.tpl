@@ -4,7 +4,7 @@ volumes:
 
   session:
 
-  wxp-client:
+  wxp-filesystem:
     driver_opts:
       repl: '2'
       size: '50'
@@ -57,7 +57,7 @@ services:
       io.rancher.container.network: true
       io.rancher.container.pull_image: always
     volumes:
-      - wxp-client:/var/www/solodev/fs
+      - wxp-filesystem:/var/www/solodev/fs
       - session:/var/lib/php/session
     links:
       - mysql
@@ -85,7 +85,7 @@ services:
       io.rancher.container.network: true
       io.rancher.container.pull_image: always
     volumes:
-      - wxp-client:/var/www/solodev/fs
+      - wxp-filesystem:/var/www/solodev/fs
     links:
       - php-fpm-lb:php-fpm
       - react-lb:react

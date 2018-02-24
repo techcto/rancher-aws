@@ -97,6 +97,8 @@ services:
       MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
       MYSQL_USER: '${MYSQL_USER}'
     restart: always
+    ports:
+      - 3306/tcp
     volumes:
       - solodev-mysql:/var/lib/mysql:rw
 

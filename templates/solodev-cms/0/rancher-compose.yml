@@ -1,5 +1,5 @@
 .catalog:
-  name: "solodev"
+  name: "cms"
   version: "v8.4.2"
   description: "A recommended stack for the MySQL RDBMS."
   uuid: solodev-0

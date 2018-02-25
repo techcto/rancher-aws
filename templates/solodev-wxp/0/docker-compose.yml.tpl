@@ -124,6 +124,8 @@ services:
       MYSQL_USER: '${MYSQL_USER}'
     tty: true
     stdin_open: true
+    ports:
+      - 3306/tcp
     volumes:
       - wxp-mysql:/var/lib/mysql:rw
 

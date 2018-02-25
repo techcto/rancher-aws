@@ -22,7 +22,7 @@
       type: enum   
       options:
         - develop
-        - production
+        - latest
     - variable: SOLODEV_PORT
       description: "Port for Solodev Admin."
       label: "Solodev Port"

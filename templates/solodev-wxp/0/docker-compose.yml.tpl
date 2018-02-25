@@ -110,7 +110,7 @@ services:
     restart: always
     image: solodev/wxp-react:develop
     environment: 
-      - NODE_ENV=dev
+      NODE_ENV: dev
 
   mysql:
     image: mysql:5.7.20

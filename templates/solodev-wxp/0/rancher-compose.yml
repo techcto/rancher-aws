@@ -1,5 +1,5 @@
 .catalog:
-  name: "wxp"
+  name: "solodev-wxp"
   version: "v10.0.1"
   description: "Hosting Stack for Solodev WXP."
   uuid: solodev-wxp-0

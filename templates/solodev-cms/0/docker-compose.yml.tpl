@@ -5,6 +5,7 @@ volumes:
   session:
 
   solodev-client:
+    external: false
     driver: pxd
     driver_opts:
       repl: '2'
@@ -12,12 +13,14 @@ volumes:
       shared: true
 
   solodev-mysql:
+    external: false
     driver: pxd
     driver_opts:
       repl: '2'
       size: '10'
 
   solodev-mongo:
+    external: false
     driver: pxd
     driver_opts:
       repl: '2'

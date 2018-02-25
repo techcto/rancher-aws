@@ -107,7 +107,10 @@ services:
     stdin_open: true
 
   react:
+    restart: always
     image: solodev/wxp-react:develop
+    environment: 
+      - NODE_ENV=dev
 
   mysql:
     image: mysql:5.7.20

@@ -39,7 +39,7 @@ services:
     stdin_open: true
 
   php-fpm:
-    image: solodev/wxp:develop
+    image: solodev/wxp:${APP_BRANCH}
     tty: true
     environment:
       DB_HOST: mysql
@@ -80,7 +80,7 @@ services:
     stdin_open: true
 
   nginx: 
-    image: solodev/wxp-nginx:develop
+    image: solodev/wxp-nginx:${APP_BRANCH}
     labels:
       io.rancher.container.network: true
       io.rancher.container.pull_image: always
@@ -108,12 +108,12 @@ services:
 
   react:
     restart: always
-    image: solodev/wxp-react:develop
+    image: solodev/wxp-react:${APP_BRANCH}
     environment: 
-      NODE_ENV: dev
+      NODE_ENV: ${APP_ENV}
 
   mysql:
-    image: mysql:5.7.20
+    image: mysql:5.7
     labels:
       io.rancher.container.network: true
       io.rancher.container.pull_image: always

@@ -14,6 +14,15 @@
       options:
         - dev
         - prod
+    - variable: APP_BRANCH
+      description: "What branch ."
+      label: "Branch"
+      default: "develop"
+      required: true
+      type: enum   
+      options:
+        - develop
+        - production
     - variable: SOLODEV_PORT
       description: "Port for Solodev Admin."
       label: "Solodev Port"
@@ -88,7 +97,7 @@ php-fpm:
   start_on_create: true
   labels:
     software: wxp
-    branch: develop
+    branch: ${APP_BRANCH}
 
 nginx-lb:
   scale: 1
@@ -97,7 +106,7 @@ nginx-lb:
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
-    rap.host: '{{ .Stack.Name }}.solodev.space,nginx.{{ .Stack.Name }}.default.solodev.space'
+    rap.host: '{{ .Stack.Name }}.solodev.space,{{ .Stack.Name }}.default.solodev.space:${SOLODEV_PORT}'
   lb_config:
     certs: []
     port_rules:
@@ -116,7 +125,7 @@ nginx:
   scale: 1
   labels:
     software: wxp-nginx
-    branch: develop
+    branch: ${APP_BRANCH}
   start_on_create: true
   health_check:
       port: 80
@@ -144,7 +153,7 @@ react:
   scale: 1
   labels:
     software: wxp-react
-    branch: develop
+    branch: ${APP_BRANCH}
   start_on_create: true
   health_check:
     port: 3000

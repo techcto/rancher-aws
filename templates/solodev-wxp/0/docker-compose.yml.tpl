@@ -110,13 +110,12 @@ services:
     restart: always
     image: solodev/wxp-react:${APP_BRANCH}
     environment: 
-      NODE_ENV: dev
+      NODE_ENV: ${APP_ENV}
 
   mysql:
     image: mysql:5.7
     labels:
       io.rancher.container.network: true
-      io.rancher.container.pull_image: always
     environment:
       MYSQL_DATABASE: '${MYSQL_DATABASE}'
       MYSQL_PASSWORD: '${MYSQL_PASSWORD}'

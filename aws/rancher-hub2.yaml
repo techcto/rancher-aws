@@ -1,6 +1,6 @@
 Description: >
 
-    This template deploys a Rancher Cluster (HUB) to manage containers on AWS Docker Hosts and a RDS database
+    This template deploys a Rancher Cluster (HUB) to manage containers on AWS Docker Hosts
 
 Parameters:
 
@@ -28,16 +28,6 @@ Parameters:
         r3.8xlarge, i2.xlarge, i2.2xlarge, i2.4xlarge, i2.8xlarge]
         ConstraintDescription: Please choose a valid instance type.
 
-    DbPassword:
-        Default: password
-        NoEcho: 'true'
-        Description: The Rancher admin account password
-        Type: String
-        MinLength: '8'
-        MaxLength: '41'
-        AllowedPattern: '[a-zA-Z0-9]*'
-        ConstraintDescription: must contain only alphanumeric characters.
-
 Resources:
 
     ALB:
@@ -62,27 +52,15 @@ Resources:
                 Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
                 KeyName: !Ref KeyName
 
-    RDS:
-        Type: AWS::CloudFormation::Stack
-        Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/rds.yaml
-            Parameters:
-                EnvironmentName: !Ref AWS::StackName
-                VPC: !Ref VPC
-                ECSHostSecurityGroup: !GetAtt ECS.Outputs.ECSHostSecurityGroup
-                Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
-
     RancherService:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/rancher.yaml
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/rancher2.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !Ref VPC
                 Cluster: !GetAtt ECS.Outputs.Cluster
                 LoadBalancer: !GetAtt ALB.Outputs.LoadBalancer
-                RDSEndpointAddress: !GetAtt RDS.Outputs.RDSEndpointAddress
-                DBPassword: !Ref DbPassword
                 DesiredCount: 2
                 ServiceRole: !GetAtt ALB.Outputs.ServiceRole 
                 Path: /

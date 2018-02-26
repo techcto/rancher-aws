@@ -15,6 +15,10 @@ Parameters:
         Type: String
         Default: 10.192.0.0/16
 
+    AvailabilityZone:
+        Description: Choose which AZ's this cluster should be deployed to
+        Type: String
+
     PublicSubnet1CIDR:
         Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
         Type: String
@@ -63,7 +67,7 @@ Resources:
         Type: AWS::EC2::Subnet
         Properties:
             VpcId: !Ref VPC
-            AvailabilityZone: !Select [ 0, !GetAZs ]
+            AvailabilityZone: !Select [ 0, !Split [ "," , !Ref AvailabilityZone ]]
             CidrBlock: !Ref PublicSubnet1CIDR
             MapPublicIpOnLaunch: true
             Tags: 
@@ -74,7 +78,7 @@ Resources:
         Type: AWS::EC2::Subnet
         Properties:
             VpcId: !Ref VPC
-            AvailabilityZone: !Select [ 1, !GetAZs ]
+            AvailabilityZone: !Select [ 1, !Split [ "," , !Ref AvailabilityZone ]]
             CidrBlock: !Ref PublicSubnet2CIDR
             MapPublicIpOnLaunch: true
             Tags: 
@@ -85,7 +89,7 @@ Resources:
         Type: AWS::EC2::Subnet
         Properties:
             VpcId: !Ref VPC
-            AvailabilityZone: !Select [ 0, !GetAZs ]
+            AvailabilityZone: !Select [ 0, !Split [ "," , !Ref AvailabilityZone ]]
             CidrBlock: !Ref PrivateSubnet1CIDR
             MapPublicIpOnLaunch: false
             Tags: 
@@ -96,7 +100,7 @@ Resources:
         Type: AWS::EC2::Subnet
         Properties:
             VpcId: !Ref VPC
-            AvailabilityZone: !Select [ 1, !GetAZs ]
+            AvailabilityZone: !Select [ 1, !Split [ "," , !Ref AvailabilityZone ]]
             CidrBlock: !Ref PrivateSubnet2CIDR
             MapPublicIpOnLaunch: false
             Tags: 

@@ -1,5 +1,5 @@
 Description: >
-    This template deploys an ECS cluster to the provided VPC and subnets 
+    This template deploys an EC2 cluster to the provided VPC and subnets 
     using an Auto Scaling Group
 
 Parameters:
@@ -11,7 +11,7 @@ Parameters:
     InstanceType:
         Description: EC2 instance type
         Type: String
-        Default: m3.medium
+        Default: t2.medium
         AllowedValues: [t2.micro, t2.small, t2.medium, t2.large, m3.medium, m3.large,
         m3.xlarge, m3.2xlarge, m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge,
         c4.large, c4.xlarge, c4.2xlarge, c4.4xlarge, c4.8xlarge, c3.large, c3.xlarge,
@@ -20,12 +20,12 @@ Parameters:
         ConstraintDescription: Please choose a valid instance type.
 
     ClusterSize:
-        Description: How many ECS hosts do you want to initially deploy?
+        Description: How many hosts do you want to initially deploy?
         Type: Number
         Default: 2
 
     VPC:
-        Description: Choose which VPC this ECS cluster should be deployed to
+        Description: Choose which VPC this cluster should be deployed to
         Type: AWS::EC2::VPC::Id
 
     KeyName:
@@ -34,20 +34,20 @@ Parameters:
         Type: 'AWS::EC2::KeyPair::KeyName'
 
     Subnets:
-        Description: Choose which subnets this ECS cluster should be deployed to
+        Description: Choose which subnets this cluster should be deployed to
         Type: List<AWS::EC2::Subnet::Id>
 
     LoadBalancerSecurityGroup:
-        Description: Select the Load Balancer Security Group to use for the ECS cluster hosts
+        Description: Select the Load Balancer Security Group to use for the cluster hosts
         Type: AWS::EC2::SecurityGroup::Id
 
     MinClusterSize:
-        Description: Minimum ECS hosts to deploy
+        Description: Minimum hosts to deploy
         Type: Number
         Default: 1
 
     MaxClusterSize:
-        Description: Maximum ECS hosts to deploy
+        Description: Maximum hosts to deploy
         Type: Number
         Default: 4
 
@@ -130,13 +130,13 @@ Mappings:
 
     AWSRegionToAMI:
         us-east-1:
-            AMI: ami-a7a242da
+            AMI: ami-28456852
         us-east-2:
-            AMI: ami-b86a5ddd
+            AMI: ami-832b0ee6
         us-west-1:
-            AMI: ami-9ad4dcfa
+            AMI: ami-dd104dbd
         us-west-2:
-            AMI: ami-92e06fea
+            AMI: ami-022b9262
         eu-west-1:
             AMI: ami-a7f2acc1
         eu-west-2:
@@ -154,12 +154,7 @@ Mappings:
 
 Resources:
 
-    ECSCluster:
-        Type: AWS::ECS::Cluster
-        Properties:
-            ClusterName: !Ref EnvironmentName
-
-    ECSAutoScalingGroup:
+    EC2AutoScalingGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
         Properties: 
             VPCZoneIdentifier: !Ref Subnets
@@ -190,14 +185,14 @@ Resources:
                   - ScheduledActions
                 WaitOnResourceSignals: true
 
-    # This security group defines who/where is allowed to access the ECS hosts directly.
+    # This security group defines who/where is allowed to access the hosts directly.
     # By default we're just allowing access from the load balancer.  If you want to SSH 
     # into the hosts, or expose non-load balanced services you can open their ports here.
-    ECSHostSecurityGroup:
+    EC2HostSecurityGroup:
         Type: AWS::EC2::SecurityGroup
         Properties: 
             VpcId: !Ref VPC
-            GroupDescription: Access to the ECS hosts and the tasks/containers that run on them
+            GroupDescription: Access to the hosts and the tasks/containers that run on them
             SecurityGroupIngress:
                 - IpProtocol: tcp
                   FromPort: 0
@@ -205,38 +200,21 @@ Resources:
                   CidrIp: "0.0.0.0/0"
                   #SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
                 - IpProtocol: tcp
-                  FromPort: 2379
-                  ToPort: 2380
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: tcp
-                  FromPort: 9001
-                  ToPort: 9005
-                  CidrIp: "0.0.0.0/0"
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: udp
-                  FromPort: 500
-                  ToPort: 500
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: udp
-                  FromPort: 4500
-                  ToPort: 4500
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: tcp
                   FromPort: 22
                   ToPort: 22
                   CidrIp: !Ref SSHFrom
             Tags: 
                 - Key: Name
-                  Value: !Sub ${EnvironmentName}-ECS-Hosts
+                  Value: !Sub ${EnvironmentName}-Hosts
         
-    ECSLaunchConfiguration:
+    EC2LaunchConfiguration:
         Type: AWS::AutoScaling::LaunchConfiguration
         Properties:
             ImageId:  !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMI]
             InstanceType: !Ref InstanceType
             SecurityGroups: 
-                - !Ref ECSHostSecurityGroup
-            IamInstanceProfile: !Ref ECSInstanceProfile
+                - !Ref EC2HostSecurityGroup
+            IamInstanceProfile: !Ref EC2InstanceProfile
             KeyName: !Ref KeyName
             AssociatePublicIpAddress: true
             BlockDeviceMappings:
@@ -253,8 +231,8 @@ Resources:
                     #!/bin/bash
                     yum install -y aws-cfn-bootstrap
                     mount --make-shared /
-                    /opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
-                    /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
+                    /opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
+                    /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
 
         Metadata:
             AWS::CloudFormation::Init:
@@ -287,8 +265,8 @@ Resources:
                             content: !Sub |
                                 [cfn-auto-reloader-hook]
                                 triggers=post.update
-                                path=Resources.ECSLaunchConfiguration.Metadata.AWS::CloudFormation::Init
-                                action=/opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+                                path=Resources.EC2LaunchConfiguration.Metadata.AWS::CloudFormation::Init
+                                action=/opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     services: 
                         sysvinit:
                             cfn-hup: 
@@ -298,8 +276,6 @@ Resources:
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
                     commands:
-                        add_instance_to_cluster:
-                            command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
                         change_cluster_storage_driver:
                             command: !Sub echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
                         storage_opt_hack:
@@ -328,11 +304,11 @@ Resources:
                         06_registerCattle:
                             command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v2.0.2 ${RancherServer}"
 
-    ECSRole:
+    EC2Role:
         Type: AWS::IAM::Role
         Properties: 
             Path: /
-            RoleName: !Sub ${EnvironmentName}-ECSRole-${AWS::Region}
+            RoleName: !Sub ${EnvironmentName}-EC2Role-${AWS::Region}
             AssumeRolePolicyDocument: |
                 {
                     "Statement": [{
@@ -344,45 +320,33 @@ Resources:
                     }]
                 }
             Policies: 
-                - PolicyName: ecs-service
+                - PolicyName: ec2-service
                   PolicyDocument: |
                     {
                         "Statement": [{
                             "Effect": "Allow",
                             "Action": [
-                                "ecs:CreateCluster",
-                                "ecs:DeregisterContainerInstance",
-                                "ecs:DiscoverPollEndpoint",
-                                "ecs:Poll",
-                                "ecs:RegisterContainerInstance",
-                                "ecs:StartTelemetrySession",
-                                "ecs:Submit*",
                                 "logs:CreateLogStream",
                                 "logs:PutLogEvents",
                                 "ecr:BatchCheckLayerAvailability",
                                 "ecr:BatchGetImage",
                                 "ecr:GetDownloadUrlForLayer",
                                 "ecr:GetAuthorizationToken",
-                                "ecs:Describe*",
-                                "ecs:List*",
                                 "ec2:Describe*"
                             ],
                             "Resource": "*"
                         }]
                     }
 
-    ECSInstanceProfile: 
+    EC2InstanceProfile: 
         Type: AWS::IAM::InstanceProfile
         Properties:
             Path: /
             Roles: 
-                - !Ref ECSRole
+                - !Ref EC2Role
 
 Outputs:
 
-    Cluster:
-        Description: A reference to the ECS cluster
-        Value: !Ref ECSCluster
-    ECSHostSecurityGroup:
-        Description: A reference to the ECSHostSecurityGroup
-        Value: !Ref ECSHostSecurityGroup
+    EC2HostSecurityGroup:
+        Description: A reference to the EC2HostSecurityGroup
+        Value: !Ref EC2HostSecurityGroup

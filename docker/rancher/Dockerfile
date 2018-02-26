@@ -1,4 +1,5 @@
-FROM rancher/server:latest
+FROM rancher/server:preview
+#FROM rancher/server:latest
 
 ENV DEFAULT_CATTLE_CATALOG_URL='{"catalogs":{"solodev":{"url":"https://github.com/techcto/datacenter.git"}}}'
 

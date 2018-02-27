@@ -73,7 +73,8 @@ apache2-lb:
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
-    rap.host: '{{ .Stack.Name }}.solodev.space,apache2.{{ .Stack.Name }}.default.solodev.space'
+    rap.host: '{{ .Stack.Name }}.solodev.space'
+    rap.port: ${SOLODEV_PORT}
   lb_config:
     certs: []
     port_rules:

@@ -53,10 +53,10 @@ Resources:
                 VPC: !Ref VPC
                 Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
 
-    ECS:
+    EC2:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/ecs.yaml
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/ec2-rancher.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: !Ref InstanceType
@@ -64,7 +64,7 @@ Resources:
                 VPC: !Ref VPC
                 EFS: !GetAtt EFS.Outputs.EFS
                 KeyName: !Ref KeyName
-                EnvType: "rancherhost"
+                EnvType: rancherhostEFS
                 RancherServer: !Ref RancherHub
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
                 Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]

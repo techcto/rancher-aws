@@ -54,17 +54,16 @@ Parameters:
     Type: Number
 
   DBClass:
-    Default: db.t2.small
+    Default: db.m3.medium
     Description: Database instance class
     Type: String
     AllowedValues:
-      - db.t2.small
       - db.m1.small
-      - db.m1.large
-      - db.m1.xlarge
-      - db.m2.xlarge
-      - db.m2.2xlarge
-      - db.m2.4xlarge
+      - db.m3.medium
+      - db.m4.large
+      - db.m4.xlarge
+      - db.m4.2xlarge
+      - db.m4.4xlarge
     ConstraintDescription: must select a valid database instance type.
 
   MultiAZDatabase:

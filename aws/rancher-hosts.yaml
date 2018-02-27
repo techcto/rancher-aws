@@ -1,0 +1,74 @@
+Description: >
+
+    This template deploys a AWS ECS Cluster, with a EFS filesystem mounted to /efs and a default ALB load balancer
+
+Parameters:
+
+    KeyName:
+        Default: ''
+        Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+        Type: 'AWS::EC2::KeyPair::KeyName'
+
+    VPC:
+        Type: AWS::EC2::VPC::Id
+        Description: Choose which VPC the Application Load Balancer should be deployed to
+
+    Subnets:
+        Description: Choose which subnets this ECS cluster should be deployed to
+        Type: List<AWS::EC2::Subnet::Id>
+
+    RancherHub:
+        Default: ''
+        Description: Location of Rancher Hub Server/Cluster
+        Type: 'String'
+
+    InstanceType:
+        Description: EC2 instance type
+        Type: String
+        Default: m3.medium
+        AllowedValues: [t2.micro, t2.small, t2.medium, t2.large, m3.medium, m3.large,
+        m3.xlarge, m3.2xlarge, m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge,
+        c4.large, c4.xlarge, c4.2xlarge, c4.4xlarge, c4.8xlarge, c3.large, c3.xlarge,
+        c3.2xlarge, c3.4xlarge, c3.8xlarge, r3.large, r3.xlarge, r3.2xlarge, r3.4xlarge,
+        r3.8xlarge, i2.xlarge, i2.2xlarge, i2.4xlarge, i2.8xlarge]
+        ConstraintDescription: Please choose a valid instance type.
+
+Resources:
+
+    ALB:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/alb.yaml
+            Parameters:
+                EnvironmentName: !Ref AWS::StackName
+                VPC: !Ref VPC
+                Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
+
+    EC2:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/ec2-rancher.yaml
+            Parameters:
+                EnvironmentName: !Ref AWS::StackName
+                InstanceType: !Ref InstanceType
+                ClusterSize: 2
+                VPC: !Ref VPC
+                KeyName: !Ref KeyName
+                EnvType: rancherhost
+                RancherServer: !Ref RancherHub
+                LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
+                Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
+
+    # NginxProxyService:
+    #     Type: AWS::CloudFormation::Stack
+    #     Properties:
+    #         TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/nginx-proxy.yaml
+    #         Parameters:
+    #             EnvironmentName: !Ref AWS::StackName
+    #             VPC: !GetAtt VPC.Outputs.VPC
+    #             Cluster: !GetAtt ECS.Outputs.Cluster
+    #             LoadBalancer: !GetAtt ALB.Outputs.LoadBalancer
+    #             DesiredCount: 2
+    #             ServiceRole: !GetAtt ALB.Outputs.ServiceRole 
+    #             Path: /
+

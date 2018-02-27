@@ -66,8 +66,8 @@ Parameters:
         Type: String
         AllowedValues: 
         - standard
-        - efs
         - rancherhost
+        - rancherhostEFS
         - rancherhost2
 
     EFS:
@@ -123,36 +123,33 @@ Conditions:
     UseRancherServer: !Equals [ !Ref RancherServer, "" ]
 
 Mappings:
-
-    # You can find the latest available on this page of our documentation:
-    # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
-    # (note the AMI identifier is region specific) 
-
+    #We use default AWS Amazon AMI and install docker.
     #Rancher OS Amis: https://github.com/rancher/os/blob/master/README.md
+    #Amazon AMI: https://aws.amazon.com/amazon-linux-ami/
 
     AWSRegionToAMI:
         us-east-1:
-            AMI: ami-a7151cdd
+            AMI: ami-97785bed
         us-east-2:
-            AMI: ami-a383b6c6
-        us-west-1:
-            AMI: ami-c4b3bca4
-        us-west-2:
-            AMI: ami-6e1a9e16
-        eu-west-1:
-            AMI: ami-a7f2acc1
-        eu-west-2:
-            AMI: ami-3fb6bc5b
-        eu-central-1:
-            AMI: ami-ec2be583
-        ap-northeast-1:
-            AMI: ami-c393d6a4
-        ap-southeast-1:
-            AMI: ami-a88530cb
-        ap-southeast-2:
-            AMI: ami-8af8ffe9
-        ca-central-1:
-            AMI: ami-ead5688e
+            AMI: ami-f63b1193
+        # us-west-1:
+        #     AMI: ami-c4b3bca4
+        # us-west-2:
+        #     AMI: ami-6e1a9e16
+        # eu-west-1:
+        #     AMI: ami-a7f2acc1
+        # eu-west-2:
+        #     AMI: ami-3fb6bc5b
+        # eu-central-1:
+        #     AMI: ami-ec2be583
+        # ap-northeast-1:
+        #     AMI: ami-c393d6a4
+        # ap-southeast-1:
+        #     AMI: ami-a88530cb
+        # ap-southeast-2:
+        #     AMI: ami-8af8ffe9
+        # ca-central-1:
+        #     AMI: ami-ead5688e
 
 Resources:
 
@@ -202,6 +199,23 @@ Resources:
                   CidrIp: "0.0.0.0/0"
                   #SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
                 - IpProtocol: tcp
+                  FromPort: 2379
+                  ToPort: 2380
+                  CidrIp: "0.0.0.0/0"
+                - IpProtocol: tcp
+                  FromPort: 9001
+                  ToPort: 9005
+                  CidrIp: "0.0.0.0/0"
+                  CidrIp: "0.0.0.0/0"
+                - IpProtocol: udp
+                  FromPort: 500
+                  ToPort: 500
+                  CidrIp: "0.0.0.0/0"
+                - IpProtocol: udp
+                  FromPort: 4500
+                  ToPort: 4500
+                  CidrIp: "0.0.0.0/0"
+                - IpProtocol: tcp
                   FromPort: 22
                   ToPort: 22
                   CidrIp: !Ref SSHFrom
@@ -232,6 +246,7 @@ Resources:
                 "Fn::Base64": !Sub |
                     #!/bin/bash
                     yum install -y aws-cfn-bootstrap
+                    yum update -y
                     mount --make-shared /
                     /opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
@@ -241,12 +256,13 @@ Resources:
                 configSets:
                     standard:
                     - "standard"
-                    efs:
-                    - "efs"  
-                    - "standard"
                     rancherhost:
                     - "standard"                  
                     - "rancherhost"   
+                    rancherhostEFS:
+                    - "efs"  
+                    - "standard"
+                    - "rancherhost"  
                     rancherhost2:
                     - "standard"                  
                     - "rancherhost2" 
@@ -276,14 +292,14 @@ Resources:
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
                     commands:
+                        install_docker:
+                            command: !Sub sudo yum install -y docker
                         change_cluster_storage_driver:
                             command: !Sub echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
                         storage_opt_hack:
                             command: !Sub echo 'OPTIONS="${!OPTIONS} --storage-opt dm.basesize=99999G"' >> /etc/sysconfig/docker
                         restart_docker:
-                            command: !Sub service docker restart
-                        update_ecs:
-                            command: !Sub yum update -y ecs-init
+                            command: !Sub service docker start
                 efs:
                     packages:
                         yum:
@@ -297,7 +313,7 @@ Resources:
                             command: !Sub "chown ec2-user:ec2-user ${MountPoint}"
                 rancherhost:
                     commands:
-                        05_registerCattle:
+                        register_cattle:
                             command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}"
                 rancherhost2:
                     commands:

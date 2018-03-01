@@ -18,7 +18,7 @@ Parameters:
         Type: List<AWS::EC2::Subnet::Id>
 
     RancherHub:
-        Default: ''
+        Default: 'http://rancher3.solodev.net/v1/scripts/4D22A87726AB69C6F5A3:1514678400000:F4mpPhHtPTeIITOJgqJp96r5c8'
         Description: Location of Rancher Hub Server/Cluster
         Type: 'String'
 

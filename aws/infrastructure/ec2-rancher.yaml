@@ -129,9 +129,9 @@ Mappings:
 
     AWSRegionToAMI:
         us-east-1:
-            AMI: ami-97785bed
-        us-east-2:
-            AMI: ami-f63b1193
+            AMI: ami-428aa838
+        # us-east-2:
+        #     AMI: ami-f63b1193
         # us-west-1:
         #     AMI: ami-c4b3bca4
         # us-west-2:
@@ -262,6 +262,8 @@ Resources:
                     rancherhostEFS:
                     - "efs"  
                     - "standard"
+                    - "etcd"
+                    - "portworx"
                     - "rancherhost"  
                     rancherhost2:
                     - "standard"                  
@@ -306,19 +308,37 @@ Resources:
                             nfs-utils: []
                     commands:
                         02_createdir:
-                            command: !Sub "mkdir -p ${MountPoint}"
+                            command: "mkdir -p ${MountPoint}"
                         03_mount:
-                            command: !Sub "mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}"
+                            command: "mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}"
                         04_permissions:
-                            command: !Sub "chown ec2-user:ec2-user ${MountPoint}"
+                            command: "chown ec2-user:ec2-user ${MountPoint}"
+                etcd:
+                    commands:
+                        install_etcd:
+                            command: "docker run -v /etc/sysconfig/:/etc/sysconfig/ monsantoco/etcd-aws-cluster"
+                portworx:
+                    commands:
+                        echo_start:
+                            command: "echo 'Starting Portworx'"
+                        set_version:
+                            command: "docker run --entrypoint /runc-entry-point.sh --rm -i --privileged=true -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx portworx/px-enterprise:1.3.0-rc5"
+                        activate_portworx:
+                            command: "/opt/pwx/bin/px-runc install -c ${AWS::StackName} -k etcd://127.0.0.1:2379 -s 'type=io1,size=100,iops=1000'"
+                        load_daemon: 
+                            command: "systemctl daemon-reload"
+                        enable_portworx: 
+                            command: "systemctl enable portworx"
+                        start_portworx: 
+                            command: "systemctl start portworx"
                 rancherhost:
                     commands:
                         register_cattle:
-                            command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}"
+                            command: "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}"
                 rancherhost2:
                     commands:
                         06_registerCattle:
-                            command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v2.0.2 ${RancherServer}"
+                            command: "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v2.0.2 ${RancherServer}"
 
     EC2Role:
         Type: AWS::IAM::Role
@@ -342,13 +362,26 @@ Resources:
                         "Statement": [{
                             "Effect": "Allow",
                             "Action": [
+                                "autoscaling:Describe*",
                                 "logs:CreateLogStream",
                                 "logs:PutLogEvents",
                                 "ecr:BatchCheckLayerAvailability",
                                 "ecr:BatchGetImage",
                                 "ecr:GetDownloadUrlForLayer",
                                 "ecr:GetAuthorizationToken",
-                                "ec2:Describe*"
+                                "ec2:Describe*",
+                                "ec2:AttachVolume",
+                                "ec2:DetachVolume",
+                                "ec2:CreateTags",
+                                "ec2:CreateVolume",
+                                "ec2:DeleteTags",
+                                "ec2:DeleteVolume",
+                                "ec2:DescribeTags",
+                                "ec2:DescribeVolumeAttribute",
+                                "ec2:DescribeVolumesModifications",
+                                "ec2:DescribeVolumeStatus",
+                                "ec2:DescribeVolumes",
+                                "ec2:DescribeInstances"
                             ],
                             "Resource": "*"
                         }]

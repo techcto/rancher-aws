@@ -15,6 +15,9 @@ volumes:
     driver_opts:
       repl: '2'
       size: '10'
+      fs: "ext4"
+      snap_interval: 60
+      io_profile: "db"
     driver: pxd 
 
   wxp-mongo:

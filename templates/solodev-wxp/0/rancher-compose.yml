@@ -6,7 +6,7 @@
   minimum_rancher_version: v1.0.0
   questions:
     - variable: APP_ENV
-      description: "Creates an additional MySQL (super)user. MySQL Password must also be set."
+      description: ""
       label: "Environment"
       default: prod
       required: true
@@ -15,7 +15,7 @@
         - dev
         - prod
     - variable: APP_BRANCH
-      description: "What branch ."
+      description: "What branch."
       label: "Branch"
       default: "develop"
       required: true

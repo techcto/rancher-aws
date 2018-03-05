@@ -6,14 +6,15 @@ volumes:
 
   wxp-filesystem:
     driver_opts:
-      repl: '2'
+      repl: '3'
       size: '50'
       shared: true
+      io_profile: "cms"
     driver: pxd
 
   wxp-mysql:
     driver_opts:
-      repl: '2'
+      repl: '3'
       size: '10'
       fs: "ext4"
       snap_interval: 60
@@ -22,8 +23,11 @@ volumes:
 
   wxp-mongo:
     driver_opts:
-      repl: '2'
+      repl: '3'
       size: '10'
+      fs: "ext4"
+      snap_interval: 60
+      io_profile: "db"
     driver: pxd
 
 services:

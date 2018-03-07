@@ -112,8 +112,8 @@ services:
 
   react:
     restart: always
-    image: solodev/wxp-react:${APP_BRANCH}
     build:
+      image: solodev/wxp-react:${APP_BRANCH}
       args: 
         - NODE_ENV=${APP_ENV}
 

@@ -106,7 +106,7 @@ nginx-lb:
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
-    rap.host: '{{ .Stack.Name }}.spce.io=>http:${SOLODEV_PORT}'
+    rap.host: '{{ .Stack.Name }}.spce.io'
     rap.port: ${SOLODEV_PORT}
   lb_config:
     certs: []

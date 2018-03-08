@@ -5,27 +5,27 @@ volumes:
   session:
 
   wxp-filesystem:
+    driver: pxd
     driver_opts:
       repl: '2'
       size: '50'
       shared: true
       io_profile: "cms"
-    driver: pxd
 
   wxp-mysql:
+    driver: pxd
     driver_opts:
       repl: '3'
       size: '10'
       fs: "ext4"
       snap_interval: 60
       io_profile: "db"
-    driver: pxd 
 
   wxp-mongo:
+    driver: pxd
     driver_opts:
       repl: '1'
       size: '10'
-    driver: pxd
 
 services:
 

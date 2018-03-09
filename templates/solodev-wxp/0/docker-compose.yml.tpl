@@ -113,6 +113,9 @@ services:
   react:
     restart: always
     image: solodev/wxp-react:${APP_BRANCH}
+    labels:
+      io.rancher.container.network: true
+      io.rancher.container.pull_image: always
     build:
       args: 
         NODE_ENV: ${APP_ENV}

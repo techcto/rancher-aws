@@ -15,10 +15,8 @@ volumes:
   wxp-mysql:
     driver: pxd
     driver_opts:
-      repl: '3'
+      repl: '2'
       size: '10'
-      fs: "ext4"
-      snap_interval: 60
       io_profile: "db"
 
   wxp-mongo:

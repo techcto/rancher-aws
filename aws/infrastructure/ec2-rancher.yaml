@@ -298,8 +298,8 @@ Resources:
                             command: !Sub sudo yum install -y docker
                         02_change_cluster_storage_driver:
                             command: !Sub echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
-                        03_storage_opt_hack:
-                            command: !Sub echo 'OPTIONS="${!OPTIONS} --storage-opt dm.basesize=99999G"' >> /etc/sysconfig/docker
+                        # 03_storage_opt_hack:
+                        #     command: !Sub echo 'OPTIONS="${!OPTIONS} --storage-opt dm.basesize=99999G"' >> /etc/sysconfig/docker
                         04_restart_docker:
                             command: !Sub service docker start
                 efs:

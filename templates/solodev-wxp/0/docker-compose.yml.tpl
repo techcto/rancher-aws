@@ -15,7 +15,7 @@ volumes:
   wxp-mysql:
     driver: pxd
     driver_opts:
-      repl: '2'
+      repl: '3'
       size: '10'
       io_profile: "db"
 

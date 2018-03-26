@@ -1,26 +1,44 @@
 .catalog:
-  name: "solodev"
-  version: "v8.4.2"
-  description: "A recommended stack for the MySQL RDBMS."
-  uuid: solodev-0
+  name: "ocoa-core"
+  version: "v0.0.1"
+  description: "OCOA Core Web Application Framework (WAF)."
+  uuid: ocoa-core-0
   minimum_rancher_version: v1.0.0
   questions:
-    - variable: SOLODEV_PORT
-      description: "Port for Solodev Admin."
-      label: "Solodev Port"
+    - variable: APP_ENV
+      description: ""
+      label: "Environment"
+      default: prod
+      required: true
+      type: enum   
+      options:
+        - dev
+        - prod
+    - variable: APP_BRANCH
+      description: "What branch."
+      label: "Branch"
+      default: "develop"
+      required: true
+      type: enum   
+      options:
+        - develop
+        - latest
+    - variable: OCOA_PORT
+      description: "Port for Ocoa Admin."
+      label: "Ocoa Port"
       required: true
       type: "int"
-      default: 101
-    - variable: SOLODEV_USER
-      description: "Creates the main Admin Solodev User."
-      label: "Solodev User"
-      default: solodev
+      default: 121
+    - variable: OCOA_USER
+      description: "Creates the main Admin Ocoa User."
+      label: "Ocoa User"
+      default: ocoa
       required: true
       type: "string"
-    - variable: SOLODEV_PASSWORD
-      description: "A password for the main Solodev Admin User."
+    - variable: OCOA_PASSWORD
+      description: "A password for the main Ocoa Admin User."
       default: password
-      label: "Solodev Password"
+      label: "Ocoa Password"
       required: true
       type: password
     - variable: MYSQL_ROOT_PASSWORD
@@ -33,12 +51,12 @@
       description: "Specify the name of a database to be created on image startup."
       label: "MySQL Database"
       required: true
-      default: solodev
+      default: ocoa
       type: "string"
     - variable: MYSQL_USER
       description: "Creates an additional MySQL (super)user. MySQL Password must also be set."
       label: "MySQL User"
-      default: solodev
+      default: ocoa
       required: true
       type: "string"
     - variable: MYSQL_PASSWORD
@@ -47,9 +65,21 @@
       default: password
       required: true
       type: password
+    - variable: MYSQL_PORT
+      description: "Public port for access to MySQL through the load balancer"
+      label: "MySQL Public LB Port"
+      required: true
+      default: 3306
+      type: "int"
+    - variable: APP_SECRET
+      description: "A secret key for encryption."
+      label: "App Secret"
+      default: c5d3adbb98f43d650d12f0cc8fbcd7f5
+      required: true
+      type: password
 
 php-fpm-lb:
-  scale: 3
+  scale: 1
   labels:
     io.rancher.container.agent.role: environmentAdmin,agent
     io.rancher.container.agent_service.drain_provider: 'true'
@@ -63,23 +93,27 @@ php-fpm-lb:
   start_on_create: true
 
 php-fpm:
-  scale: 3
+  scale: 1
   start_on_create: true
+  labels:
+    software: apistudio
+    branch: ${APP_BRANCH}
 
-apache2-lb:
-  scale: 3
+nginx-lb:
+  scale: 1
   labels:
     io.rancher.container.agent.role: environmentAdmin,agent
     io.rancher.container.agent_service.drain_provider: 'true'
     io.rancher.container.create_agent: 'true'
     io.rancher.lb_service.target: 'prefer-local'
-    rap.host: '{{ .Stack.Name }}.awspress.com,apache2.{{ .Stack.Name }}.default.awspress.com'
+    rap.host: '{{ .Stack.Name }}.spce.io'
+    rap.port: ${OCOA_PORT}
   lb_config:
     certs: []
     port_rules:
     - protocol: http
-      service: apache2
-      source_port: ${SOLODEV_PORT}
+      service: nginx
+      source_port: ${OCOA_PORT}
       target_port: 80
   health_check:
     response_timeout: 2000
@@ -88,8 +122,11 @@ apache2-lb:
     unhealthy_threshold: 3
   start_on_create: true
 
-apache2:
-  scale: 3
+nginx:
+  scale: 1
+  labels:
+    software: apistudio-nginx
+    branch: ${APP_BRANCH}
   start_on_create: true
   health_check:
       port: 80
@@ -99,6 +136,41 @@ apache2:
       healthy_threshold: 2
       response_timeout: 5000
 
+react-lb:
+  scale: 1
+  labels:
+    io.rancher.container.agent.role: environmentAdmin,agent
+    io.rancher.container.agent_service.drain_provider: 'true'
+    io.rancher.container.create_agent: 'true'
+    io.rancher.lb_service.target: 'prefer-local'
+  health_check:
+    response_timeout: 2000
+    healthy_threshold: 2
+    port: 42
+    unhealthy_threshold: 3
+  start_on_create: true
+
+react:
+  scale: 1
+  labels:
+    software: apistudio-react
+    branch: ${APP_BRANCH}
+  start_on_create: true
+  health_check:
+    port: 3000
+    interval: 5000
+    unhealthy_threshold: 3
+    request_line: 'GET / HTTP/1.0'
+    healthy_threshold: 2
+    response_timeout: 5000
+
 mysql:
   scale: 1
   start_on_create: true
+  health_check:
+    healthy_threshold: 2
+    response_timeout: 2000
+    port: 3306
+    unhealthy_threshold: 3
+    interval: 2000
+    strategy: recreate

@@ -45,18 +45,18 @@ Resources:
             DesiredCount: !Ref DesiredCount
             TaskDefinition: !Ref TaskDefinition
             LoadBalancers: 
-                - ContainerName: "rancher-hub"
+                - ContainerName: "rancher-hub2"
                   ContainerPort: 80
                   TargetGroupArn: !Ref TargetGroup
 
     TaskDefinition:
         Type: AWS::ECS::TaskDefinition
         Properties:
-            Family: rancher-hub
+            Family: rancher-hub2
             ContainerDefinitions:
-                - Name: rancher-hub
+                - Name: rancher-hub2
                   Essential: true
-                  Image: techcto/docker-rancher:latest
+                  Image: techcto/docker-rancher:preview
                   Memory: 750
                   EntryPoint:
                     - /usr/bin/entry

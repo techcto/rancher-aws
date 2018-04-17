@@ -262,8 +262,6 @@ Resources:
                     rancherhostEFS:
                     - "efs"  
                     - "standard"
-                    - "etcd"
-                    - "portworx"
                     - "rancherhost"  
                     rancherhost2:
                     - "standard"                  
@@ -307,12 +305,12 @@ Resources:
                         yum:
                             nfs-utils: []
                     commands:
-                        02_createdir:
-                            command: !Sub mkdir -p ${MountPoint}
-                        03_mount:
-                            command: !Sub mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}
-                        04_permissions:
-                            command: !Sub chown ec2-user:ec2-user ${MountPoint}
+                        # 02_createdir:
+                        #     command: !Sub mkdir -p ${MountPoint}
+                        # 03_mount:
+                        #     command: !Sub mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}
+                        # 04_permissions:
+                        #     command: !Sub chown ec2-user:ec2-user ${MountPoint}
                 etcd:
                     commands:
                         install_etcd:
@@ -332,7 +330,7 @@ Resources:
                 rancherhost:
                     commands:
                         register_cattle:
-                            command: !Sub docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}
+                            command: !Sub docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.10 ${RancherServer}
                 rancherhost2:
                     commands:
                         06_registerCattle:

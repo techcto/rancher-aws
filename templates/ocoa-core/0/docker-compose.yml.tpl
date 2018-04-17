@@ -5,25 +5,19 @@ volumes:
   session:
 
   ocoa-filesystem:
-    driver: pxd
+    driver: rancher-nfs
     driver_opts:
-      repl: '2'
-      size: '50'
-      shared: true
-      io_profile: "cms"
+      exportBase: '/{{ .Stack.Name }}'
 
   ocoa-mysql:
-    driver: pxd
+    driver: rancher-nfs
     driver_opts:
-      repl: '3'
-      size: '10'
-      io_profile: "db"
+      exportBase: '/{{ .Stack.Name }}'
 
   ocoa-mongo:
-    driver: pxd
+    driver: rancher-nfs
     driver_opts:
-      repl: '1'
-      size: '10'
+      exportBase: '/{{ .Stack.Name }}'
 
 services:
 

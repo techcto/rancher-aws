@@ -37,9 +37,18 @@ Parameters:
         Description: Choose which subnets this cluster should be deployed to
         Type: List<AWS::EC2::Subnet::Id>
 
+    LoadBalancer:
+        Description: The VPC that the ECS cluster is deployed to
+        Type: String
+
     LoadBalancerSecurityGroup:
         Description: Select the Load Balancer Security Group to use for the cluster hosts
         Type: AWS::EC2::SecurityGroup::Id
+
+    Path: 
+        Description: The path to register with the Application Load Balancer
+        Type: String
+        Default: /
 
     MinClusterSize:
         Description: Minimum hosts to deploy
@@ -59,33 +68,6 @@ Parameters:
         Default: 0.0.0.0/0
         AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
         ConstraintDescription: must be a valid CIDR range of the form x.x.x.x/x.
-
-    EnvType: 
-        Description: Environment type.
-        Default: standard
-        Type: String
-        AllowedValues: 
-        - standard
-        - rancherhost
-        - rancherhostEFS
-        - rancher2
-        - rancher2cluster
-
-    EFS:
-        Description: Choose which EFS this ECS cluster should use for filestorage
-        Type: String
-        Default: ""
-
-    MountPoint:
-        Description: The mount point for the EFS volume
-        Type: String
-        MinLength: '1'
-        Default: "/efs"
-
-    RancherServer:
-        Description: URL of Rancher server
-        Type: String
-        Default: ""
 
     HostVolumeSize:
         Description: Size in GB of additional non-root volume
@@ -118,10 +100,6 @@ Parameters:
         - '1024'
         - '2048'
         - '4096'
-
-Conditions: 
-    UseEFS: !Equals [ !Ref EFS, "" ]
-    UseRancherServer: !Equals [ !Ref RancherServer, "" ]
 
 Mappings:
     #We use default AWS Amazon AMI and install docker.
@@ -198,28 +176,6 @@ Resources:
                   FromPort: 0
                   ToPort: 65535
                   CidrIp: "0.0.0.0/0"
-                  #SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
-                - IpProtocol: tcp
-                  FromPort: 2379
-                  ToPort: 2380
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: tcp
-                  FromPort: 9001
-                  ToPort: 9005
-                  CidrIp: "0.0.0.0/0"
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: udp
-                  FromPort: 500
-                  ToPort: 500
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: udp
-                  FromPort: 4500
-                  ToPort: 4500
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: tcp
-                  FromPort: 22
-                  ToPort: 22
-                  CidrIp: !Ref SSHFrom
             Tags: 
                 - Key: Name
                   Value: !Sub ${EnvironmentName}-Hosts
@@ -249,7 +205,7 @@ Resources:
                     yum install -y aws-cfn-bootstrap
                     yum update -y
                     mount --make-shared /
-                    /opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
+                    /opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
 
         Metadata:
@@ -257,19 +213,6 @@ Resources:
                 configSets:
                     standard:
                     - "standard"
-                    rancherhost:
-                    - "standard"                  
-                    - "rancherhost"   
-                    rancherhostEFS:
-                    - "efs"  
-                    - "standard"
-                    - "rancherhost"  
-                    rancher2:
-                    - "standard"                  
-                    - "rancher2" 
-                    rancher2cluster:
-                    - "standard"                  
-                    - "rancher2cluster" 
                 standard:
                     files:
                         "/etc/cfn/cfn-hup.conf":
@@ -286,7 +229,7 @@ Resources:
                                 [cfn-auto-reloader-hook]
                                 triggers=post.update
                                 path=Resources.EC2LaunchConfiguration.Metadata.AWS::CloudFormation::Init
-                                action=/opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
+                                action=/opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     services: 
                         sysvinit:
                             cfn-hup: 
@@ -296,53 +239,24 @@ Resources:
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
                     commands:
-                        01_install_docker:
-                            command: !Sub sudo yum install -y docker
-                        02_change_cluster_storage_driver:
+                        1_install_docker:
+                            command: !Sub sudo yum -y install docker
+                        2_change_cluster_storage_driver:
                             command: !Sub echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
-                        # 03_storage_opt_hack:
-                        #     command: !Sub echo 'OPTIONS="${!OPTIONS} --storage-opt dm.basesize=99999G"' >> /etc/sysconfig/docker
-                        04_restart_docker:
+                        3_space_sshd_config:
+                            command: !Sub echo '' >> /etc/ssh/sshd_config
+                        4_edit_sshd_config:
+                            command: !Sub echo 'AllowTcpForwarding yes' >> /etc/ssh/sshd_config
+                        5_edit_sshd_config2:
+                            command: !Sub echo 'PermitTunnel yes' >> /etc/ssh/sshd_config
+                        6_add_user_to_docker:
+                            command: !Sub usermod -g docker ec2-user
+                        7_update_docker_service:
+                            command: !Sub echo "MountFlags=shared" >> /usr/lib/systemd/system/docker.service
+                        8_start_docker:
                             command: !Sub service docker start
-                efs:
-                    packages:
-                        yum:
-                            nfs-utils: []
-                    commands:
-                        02_createdir:
-                            command: !Sub mkdir -p ${MountPoint}
-                        03_mount:
-                            command: !Sub mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}
-                        04_permissions:
-                            command: !Sub chown ec2-user:ec2-user ${MountPoint}
-                # etcd:
-                #     commands:
-                #         install_etcd:
-                #             command: !Sub docker run -itd --name=etcd --restart=always --expose=2379 -v /etc/sysconfig/:/etc/sysconfig/ monsantoco/etcd-aws-cluster
-                # portworx:
-                #     commands:
-                #         01_install_portworx:
-                #             command: !Sub sudo docker run --entrypoint /runc-entry-point.sh --rm -i --privileged=true -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx portworx/px-enterprise:1.3.0-rc5
-                #         02_activate_portworx:
-                #             command: !Sub sudo /opt/pwx/bin/px-runc install -c ${AWS::StackName} -k etcd://127.0.0.1:2379 -s "type=io1,size=100,iops=1000"
-                #         03_load_daemon: 
-                #             command: !Sub systemctl daemon-reload
-                #         04_enable_portworx: 
-                #             command: !Sub systemctl enable portworx
-                #         05_start_portworx: 
-                #             command: !Sub systemctl start portworx
-                rancherhost:
-                    commands:
-                        register_cattle:
-                            command: !Sub docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}
-                rancher2:
-                    commands:
-                        init_rancher:
-                            command: !Sub docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher -p 80:80 -p 443:443 rancher/server:preview
-                rancher2cluster:
-                    commands:
-                        register_cluster:
-                            command: !Sub docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v2.0.2 ${RancherServer}
+                        9_restart_sshd:
+                            command: !Sub service sshd restart
 
     EC2Role:
         Type: AWS::IAM::Role
@@ -397,6 +311,62 @@ Resources:
             Path: /
             Roles: 
                 - !Ref EC2Role
+
+    CloudWatchLogsGroup:
+        Type: AWS::Logs::LogGroup
+        Properties: 
+            LogGroupName: !Ref AWS::StackName
+            RetentionInDays: 14  
+
+    TargetGroup:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties:
+            VpcId: !Ref VPC
+            Port: 80
+            Protocol: HTTP
+            Matcher: 
+                HttpCode: 200-299
+            HealthCheckIntervalSeconds: 60
+            HealthCheckPath: /ping
+            HealthCheckProtocol: HTTP
+            HealthCheckTimeoutSeconds: 30
+            TargetGroupAttributes:
+                - Key: deregistration_delay.timeout_seconds
+                  Value: '700'
+                - Key: stickiness.type
+                  Value: lb_cookie
+                - Key: stickiness.enabled
+                  Value: 'true'
+                - Key: stickiness.lb_cookie.duration_seconds
+                  Value: '1860'
+            Name: !Join 
+                - '-'
+                - - !Ref 'EnvironmentName'
+                  - RancherTG
+
+    Listener:
+        Type: 'AWS::ElasticLoadBalancingV2::Listener'
+        Properties:
+            DefaultActions:
+                - Type: forward
+                  TargetGroupArn: !Ref TargetGroup
+            LoadBalancerArn: !Ref LoadBalancer
+            Port: '80'
+            Protocol: HTTP
+    
+    ListenerRule:
+        Type: AWS::ElasticLoadBalancingV2::ListenerRule
+        Properties:
+            ListenerArn: !Ref Listener
+            Priority: 1
+            Conditions:
+                - Field: path-pattern
+                  Values: 
+                    - !Ref Path
+            Actions:
+                - TargetGroupArn: !Ref TargetGroup
+                  Type: forward
+
 
 Outputs:
 

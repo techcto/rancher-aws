@@ -1,6 +1,6 @@
 Description: >
 
-    This template deploys a AWS ECS Cluster, with a EFS filesystem mounted to /efs and a default ALB load balancer
+    This template deploys a Rancher Cluster (HUB) to manage containers on AWS Docker Hosts
 
 Parameters:
 
@@ -16,11 +16,6 @@ Parameters:
     Subnets:
         Description: Choose which subnets this ECS cluster should be deployed to
         Type: List<AWS::EC2::Subnet::Id>
-
-    RancherHub:
-        Default: ''
-        Description: Location of Rancher Hub Server/Cluster
-        Type: 'String'
 
     InstanceType:
         Description: EC2 instance type
@@ -47,28 +42,19 @@ Resources:
     EC2:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/ec2-rancher.yaml
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/rancher2.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: !Ref InstanceType
                 ClusterSize: 2
                 VPC: !Ref VPC
                 KeyName: !Ref KeyName
-                EnvType: rancherhost
-                RancherServer: !Ref RancherHub
+                LoadBalancer: !GetAtt ALB.Outputs.LoadBalancer
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
                 Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
 
-    # NginxProxyService:
-    #     Type: AWS::CloudFormation::Stack
-    #     Properties:
-    #         TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/nginx-proxy.yaml
-    #         Parameters:
-    #             EnvironmentName: !Ref AWS::StackName
-    #             VPC: !GetAtt VPC.Outputs.VPC
-    #             Cluster: !GetAtt ECS.Outputs.Cluster
-    #             LoadBalancer: !GetAtt ALB.Outputs.LoadBalancer
-    #             DesiredCount: 2
-    #             ServiceRole: !GetAtt ALB.Outputs.ServiceRole 
-    #             Path: /
+Outputs:
 
+    RancherServiceUrl: 
+        Description: The URL endpoint for the website service
+        Value: !Join ["", [ "https://", !GetAtt ALB.Outputs.LoadBalancerUrl, "/" ]]

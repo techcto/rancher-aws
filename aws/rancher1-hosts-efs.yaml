@@ -68,17 +68,3 @@ Resources:
                 RancherServer: !Ref RancherHub
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
                 Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
-
-    # NginxProxyService:
-    #     Type: AWS::CloudFormation::Stack
-    #     Properties:
-    #         TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/nginx-proxy.yaml
-    #         Parameters:
-    #             EnvironmentName: !Ref AWS::StackName
-    #             VPC: !GetAtt VPC.Outputs.VPC
-    #             Cluster: !GetAtt ECS.Outputs.Cluster
-    #             LoadBalancer: !GetAtt ALB.Outputs.LoadBalancer
-    #             DesiredCount: 2
-    #             ServiceRole: !GetAtt ALB.Outputs.ServiceRole 
-    #             Path: /
-

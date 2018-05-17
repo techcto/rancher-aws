@@ -22,7 +22,7 @@ Parameters:
     ClusterSize:
         Description: How many hosts do you want to initially deploy?
         Type: Number
-        Default: 2
+        Default: 3
 
     VPC:
         Description: Choose which VPC this cluster should be deployed to
@@ -50,6 +50,14 @@ Parameters:
         Type: String
         Default: /
 
+    FQDN:
+        Type: String
+        Description: Fully qualified URL for using app.  DNS of FQDN must be pointed to CNAME of ALB.
+
+    CertificateArn:
+        Type: String
+        Description: SSL cert for AWS ALB HTTPS listener
+
     MinClusterSize:
         Description: Minimum hosts to deploy
         Type: Number
@@ -58,7 +66,7 @@ Parameters:
     MaxClusterSize:
         Description: Maximum hosts to deploy
         Type: Number
-        Default: 4
+        Default: 5
 
     SSHFrom:
         Description: Lockdown SSH access to the bastion host (default can be accessed from anywhere)
@@ -176,6 +184,10 @@ Resources:
                   FromPort: 0
                   ToPort: 65535
                   CidrIp: "0.0.0.0/0"
+                - IpProtocol: udp
+                  FromPort: 0
+                  ToPort: 65535
+                  CidrIp: "0.0.0.0/0"
             Tags: 
                 - Key: Name
                   Value: !Sub ${EnvironmentName}-Hosts
@@ -250,7 +262,7 @@ Resources:
                         5_edit_sshd_config2:
                             command: !Sub echo 'PermitTunnel yes' >> /etc/ssh/sshd_config
                         6_add_user_to_docker:
-                            command: !Sub usermod -g docker ec2-user
+                            command: !Sub usermod -a -G docker ec2-user
                         7_update_docker_service:
                             command: !Sub echo "MountFlags=shared" >> /usr/lib/systemd/system/docker.service
                         8_start_docker:
@@ -299,7 +311,9 @@ Resources:
                                 "ec2:DescribeVolumesModifications",
                                 "ec2:DescribeVolumeStatus",
                                 "ec2:DescribeVolumes",
-                                "ec2:DescribeInstances"
+                                "ec2:DescribeInstances",
+                                "elasticloadbalancing:*",
+                                "ec2:*"
                             ],
                             "Resource": "*"
                         }]
@@ -327,7 +341,7 @@ Resources:
             Matcher: 
                 HttpCode: 200-299
             HealthCheckIntervalSeconds: 60
-            HealthCheckPath: /ping
+            HealthCheckPath: /healthz
             HealthCheckProtocol: HTTP
             HealthCheckTimeoutSeconds: 30
             TargetGroupAttributes:
@@ -336,7 +350,7 @@ Resources:
                 - Key: stickiness.type
                   Value: lb_cookie
                 - Key: stickiness.enabled
-                  Value: 'true'
+                  Value: 'false'
                 - Key: stickiness.lb_cookie.duration_seconds
                   Value: '1860'
             Name: !Join 
@@ -347,12 +361,14 @@ Resources:
     Listener:
         Type: 'AWS::ElasticLoadBalancingV2::Listener'
         Properties:
+            Certificates: 
+                - CertificateArn: !Ref CertificateArn
             DefaultActions:
                 - Type: forward
                   TargetGroupArn: !Ref TargetGroup
             LoadBalancerArn: !Ref LoadBalancer
-            Port: '80'
-            Protocol: HTTP
+            Port: '443'
+            Protocol: HTTPS
     
     ListenerRule:
         Type: AWS::ElasticLoadBalancingV2::ListenerRule

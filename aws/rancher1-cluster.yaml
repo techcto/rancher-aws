@@ -75,7 +75,7 @@ Resources:
     RancherService:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/rancher.yaml
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/configure-rancher1.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !Ref VPC

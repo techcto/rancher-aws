@@ -1,0 +1,104 @@
+Description: >
+    This template deploys an EC2 cluster to the provided VPC and subnets 
+    using an Auto Scaling Group
+
+Parameters:
+
+    EnvironmentName:
+        Description: An environment name that will be prefixed to resource names
+        Type: String
+    
+Resources:
+  
+    RunRKELambda: 
+        Type: "AWS::Lambda::Function"
+        Properties: 
+            Handler: index.handler
+            Role: !GetAtt LambdaExecutionRole.Arn
+            Code:  
+                ZipFile: >
+                    var response = require('cfn-response');
+                    exports.handler = function(event, context) {
+                        var input = parseInt(event.ResourceProperties.Input);
+                        var responseData = {Value: input * 5};
+                        response.send(event, context, response.SUCCESS, responseData);
+                    };
+            Runtime: nodejs4.3
+
+    LambdaExecutionRole:
+        Type: AWS::IAM::Role
+        Properties:
+            Policies:
+                - PolicyName: lambda-inline
+                  PolicyDocument:
+                    Version: 2012-10-17
+                    Statement:
+                    - Effect: Allow
+                      Action:
+                        - 'autoscaling:CompleteLifecycleAction'
+                        - 'logs:CreateLogGroup'
+                        - 'logs:CreateLogStream'
+                        - 'logs:PutLogEvents'
+                        - 'ec2:DescribeInstances'
+                        - 'ec2:DescribeInstanceAttribute'
+                        - 'ec2:DescribeInstanceStatus'
+                        - 'ec2:DescribeHosts'
+                        - 'ecs:ListContainerInstances'
+                        - 'ecs:SubmitContainerStateChange'
+                        - 'ecs:SubmitTaskStateChange'
+                        - 'ecs:DescribeContainerInstances'
+                        - 'ecs:UpdateContainerInstancesState'
+                        - 'ecs:ListTasks'
+                        - 'ecs:DescribeTasks'
+                        - 'sns:Publish'
+                        - 'sns:ListSubscriptions'
+                        Resource: '*'
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                      Service: 
+                      - lambda.amazonaws.com
+                      Action: 
+                      - sts:AssumeRole
+                ManagedPolicyArns:
+                    - 'arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole'
+
+    RunRKETopic: 
+        Type: "AWS::SNS::Topic"
+        Properties: 
+            Subscription: 
+            - 
+                Endpoint: 
+                Fn::GetAtt: 
+                    - "RunRKELambda"
+                    - "Arn"
+                Protocol: "lambda"
+            TopicName: "Run RKE"
+
+    EC2HookLaunch: 
+        Type: "AWS::AutoScaling::LifecycleHook"
+        Properties: 
+            AutoScalingGroupName: 
+                Ref: EC2AutoScalingGroup
+            LifecycleTransition: "autoscaling:EC2_INSTANCE_LAUNCHING"
+            NotificationTargetARN: 
+                Ref: RunRKETopic
+            RoleARN: 
+                Fn::GetAtt: 
+                    - lifecycleHookRole
+                    - Arn
+
+    EC2HookTerminate: 
+        Type: "AWS::AutoScaling::LifecycleHook"
+        Properties: 
+            AutoScalingGroupName: 
+                Ref: EC2AutoScalingGroup
+            LifecycleTransition: "autoscaling:EC2_INSTANCE_TERMINATING"
+            NotificationTargetARN: 
+                Ref: RunRKETopic
+            RoleARN: 
+                Fn::GetAtt: 
+                    - lifecycleHookRole
+                    - Arn

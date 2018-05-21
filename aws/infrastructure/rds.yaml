@@ -1,5 +1,5 @@
 Description: >
-  This template deploys an RDS Database for our application.
+  This template deploys an RDS Database
 
 Parameters:
 
@@ -20,7 +20,7 @@ Parameters:
     Type: 'List<AWS::EC2::Subnet::Id>'
 
   DBName:
-    Default: cattle
+    Default: datacenter
     Description: The database name
     Type: String
     MinLength: '1'
@@ -29,7 +29,7 @@ Parameters:
     ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
 
   DBUsername:
-    Default: rancher
+    Default: root1
     NoEcho: 'true'
     Description: The database admin account username
     Type: String

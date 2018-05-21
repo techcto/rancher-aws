@@ -67,8 +67,6 @@ Parameters:
         AllowedValues: 
         - standard
         - efs
-        - rancherhost
-        - rancherhost2
 
     EFS:
         Description: Choose which EFS this ECS cluster should use for filestorage
@@ -80,11 +78,6 @@ Parameters:
         Type: String
         MinLength: '1'
         Default: "/efs"
-
-    RancherServer:
-        Description: URL of Rancher server
-        Type: String
-        Default: ""
 
     HostVolumeSize:
         Description: Size in GB of additional non-root volume
@@ -120,14 +113,12 @@ Parameters:
 
 Conditions: 
     UseEFS: !Equals [ !Ref EFS, "" ]
-    UseRancherServer: !Equals [ !Ref RancherServer, "" ]
 
 Mappings:
 
     # You can find the latest available on this page of our documentation:
     # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
     # (note the AMI identifier is region specific) 
-
     AWSRegionToAMI:
         us-east-1:
             AMI: ami-a7a242da
@@ -203,24 +194,6 @@ Resources:
                   FromPort: 0
                   ToPort: 65535
                   CidrIp: "0.0.0.0/0"
-                  #SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup 
-                - IpProtocol: tcp
-                  FromPort: 2379
-                  ToPort: 2380
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: tcp
-                  FromPort: 9001
-                  ToPort: 9005
-                  CidrIp: "0.0.0.0/0"
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: udp
-                  FromPort: 500
-                  ToPort: 500
-                  CidrIp: "0.0.0.0/0"
-                - IpProtocol: udp
-                  FromPort: 4500
-                  ToPort: 4500
-                  CidrIp: "0.0.0.0/0"
                 - IpProtocol: tcp
                   FromPort: 22
                   ToPort: 22
@@ -264,14 +237,6 @@ Resources:
                     efs:
                     - "efs"  
                     - "standard"
-                    rancherhost:
-                    - "efs"  
-                    - "standard"                  
-                    - "rancherhost"   
-                    rancherhost2:
-                    - "efs"  
-                    - "standard"                  
-                    - "rancherhost2" 
                 standard:
                     files:
                         "/etc/cfn/cfn-hup.conf":
@@ -319,14 +284,6 @@ Resources:
                             command: !Sub "mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}"
                         04_permissions:
                             command: !Sub "chown ec2-user:ec2-user ${MountPoint}"
-                rancherhost:
-                    commands:
-                        05_registerCattle:
-                            command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}"
-                rancherhost2:
-                    commands:
-                        06_registerCattle:
-                            command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v2.0.2 ${RancherServer}"
 
     ECSRole:
         Type: AWS::IAM::Role

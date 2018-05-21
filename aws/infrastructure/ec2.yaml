@@ -67,8 +67,6 @@ Parameters:
         AllowedValues: 
         - standard
         - efs
-        - rancherhost
-        - rancherhost2
 
     EFS:
         Description: Choose which EFS this ECS cluster should use for filestorage
@@ -120,16 +118,12 @@ Parameters:
 
 Conditions: 
     UseEFS: !Equals [ !Ref EFS, "" ]
-    UseRancherServer: !Equals [ !Ref RancherServer, "" ]
 
 Mappings:
 
     # You can find the latest available on this page of our documentation:
     # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
     # (note the AMI identifier is region specific) 
-
-    #Rancher OS Amis: https://github.com/rancher/os/blob/master/README.md
-
     AWSRegionToAMI:
         us-east-1:
             AMI: ami-a7151cdd
@@ -244,12 +238,6 @@ Resources:
                     efs:
                     - "efs"  
                     - "standard"
-                    rancherhost:
-                    - "standard"                  
-                    - "rancherhost"   
-                    rancherhost2:
-                    - "standard"                  
-                    - "rancherhost2" 
                 standard:
                     files:
                         "/etc/cfn/cfn-hup.conf":
@@ -295,14 +283,6 @@ Resources:
                             command: !Sub "mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}"
                         04_permissions:
                             command: !Sub "chown ec2-user:ec2-user ${MountPoint}"
-                rancherhost:
-                    commands:
-                        05_registerCattle:
-                            command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.9 ${RancherServer}"
-                rancherhost2:
-                    commands:
-                        06_registerCattle:
-                            command: !Sub "sudo docker run --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v2.0.2 ${RancherServer}"
 
     EC2Role:
         Type: AWS::IAM::Role

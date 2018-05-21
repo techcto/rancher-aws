@@ -148,6 +148,7 @@ Resources:
             MinSize: !Ref MinClusterSize
             MaxSize: !Ref MaxClusterSize
             DesiredCapacity: !Ref ClusterSize
+            TargetGroupARNs: !Ref TargetGroup
             Tags:
                 - Key: Name
                   Value: !Join 
@@ -336,8 +337,8 @@ Resources:
         Type: AWS::ElasticLoadBalancingV2::TargetGroup
         Properties:
             VpcId: !Ref VPC
-            Port: 80
-            Protocol: HTTP
+            Port: 443
+            Protocol: HTTPS
             Matcher: 
                 HttpCode: 200-299
             HealthCheckIntervalSeconds: 60

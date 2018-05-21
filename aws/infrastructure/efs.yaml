@@ -1,5 +1,5 @@
 Description: >
-    This template deploys an EFS filesystem for use by our Container Hosts.
+    This template deploys an EFS filesystem
 
 Parameters:
 

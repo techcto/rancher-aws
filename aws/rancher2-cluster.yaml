@@ -36,6 +36,11 @@ Parameters:
         r3.8xlarge, i2.xlarge, i2.2xlarge, i2.4xlarge, i2.8xlarge]
         ConstraintDescription: Please choose a valid instance type.
 
+    InstanceUser:
+        Type: String
+        Default: 'ec2-user'
+        Description: Name of admin user for instance (ec2-user for example)
+
 Resources:
 
     ALB:
@@ -50,7 +55,7 @@ Resources:
     EC2:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/rancher2.yaml
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/rancher2.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: !Ref InstanceType
@@ -62,6 +67,17 @@ Resources:
                 LoadBalancer: !GetAtt ALB.Outputs.LoadBalancer
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
                 Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
+
+    RKE:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/lambda/configure-rancher2.yaml
+            Parameters:
+                EnvironmentName: !Ref AWS::StackName
+                AutoScalingGroup: !GetAtt EC2.Outputs.AutoScalingGroup
+                KeyName: !Ref KeyName
+                InstanceUser: !Ref InstanceUser
+                FQDN: !Ref FQDN
 
 Outputs:
 

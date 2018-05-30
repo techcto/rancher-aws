@@ -148,7 +148,6 @@ Resources:
             MinSize: !Ref MinClusterSize
             MaxSize: !Ref MaxClusterSize
             DesiredCapacity: !Ref ClusterSize
-            TargetGroupARNs: !Ref TargetGroup
             Tags:
                 - Key: Name
                   Value: !Join 
@@ -386,6 +385,14 @@ Resources:
 
 
 Outputs:
+
+    AutoScalingGroup:
+        Description: A reference to the auto scaling group
+        Value: !Ref EC2AutoScalingGroup
+
+    AutoScalingRole:
+        Description: A reference to the auto scaling role
+        Value: !GetAtt EC2Role.Arn
 
     EC2HostSecurityGroup:
         Description: A reference to the EC2HostSecurityGroup

@@ -42,11 +42,17 @@ Resources:
     Type: 'AWS::SNS::Topic'
     Properties:
       Subscription:
-        - Endpoint: !GetAtt 
+        - 
+          Endpoint: !GetAtt 
+            - LifecycleInitRkeS3
+            - Arn
+          Protocol: lambda
+        - 
+          Endpoint: !GetAtt 
             - LifecycleGenerateRKE
             - Arn
           Protocol: lambda
-    DependsOn: LifecycleGenerateRKE
+    DependsOn: LifecycleExecuteRKE
 
   InstanceTerminatingHook:
     Type: 'AWS::AutoScaling::LifecycleHook'
@@ -132,12 +138,65 @@ Resources:
   LambdaInvokePermission:
     Type: 'AWS::Lambda::Permission'
     Properties:
-      FunctionName: !Ref LifecycleGenerateRKE
+      FunctionName: !Ref LifecycleInitRkeS3
       Action: 'lambda:InvokeFunction'
       Principal: sns.amazonaws.com
       SourceArn: !Ref NotificationTopic
 
-  LifecycleGenerateRKE:
+  LifecycleInitRkeS3:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Environment:
+        Variables:
+          rkeS3Bucket:  !Ref rkeS3Bucket
+          S3initRKE: 'https://github.com/techcto/S3initRKE/archive/master.zip'
+      Code:
+        ZipFile: !Join 
+          - ''
+          - - |
+              'use strict';
+
+              const fetch = require('node-fetch');
+              const AWS = require('aws-sdk'); 
+              const s3 = new AWS.S3();
+
+              exports.handler = (event, context, callback) => {
+                console.log(JSON.stringify(event));
+
+                fetch(process.env.S3initRKE)
+                  .then((response) => {
+                    if (response.ok) {
+                      return response;
+                    }
+                    return Promise.reject(new Error(
+                          `Failed to fetch ${response.url}: ${response.status} ${response.statusText}`));
+                  })
+                  .then(response => response.buffer())
+                  .then(buffer => (
+                    s3.putObject({
+                      Bucket: process.env.rkeS3Bucket,
+                      Key: event.key,
+                      Body: buffer,
+                    }).promise()
+                  ))
+                  .then(v => callback(null, v), callback);
+              };
+      Handler: index.handler
+      Role: !GetAtt 
+        - LambdaExecutionRole
+        - Arn
+      Runtime: nodejs6.10
+      Timeout: 20
+
+  LambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName: !Ref LifecycleExecuteRKE
+      Action: 'lambda:InvokeFunction'
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref NotificationTopic
+
+  LifecycleExecuteRKE:
     Type: 'AWS::Lambda::Function'
     Properties:
       Environment:
@@ -146,116 +205,13 @@ Resources:
           KeyName: !Ref KeyName
           InstanceUser: !Ref InstanceUser
           rkeS3Bucket:  !Ref rkeS3Bucket
-      Code:
-        ZipFile: !Join 
-          - ''
-          - - |
-              import boto3,json,os,time
-              ec2Client = boto3.client('ec2')
-              autoscalingClient = boto3.client('autoscaling')
-              snsClient = boto3.client('sns')
-              lambdaClient = boto3.client('lambda')
-              s3Client = boto3.resource("s3")
-
-              def lambda_handler(event, context):
-                  instanceUser=os.environ['InstanceUser']
-                  keyName=os.environ['KeyName']
-                  FQDN=os.environ['FQDN']
-                  rkeS3Bucket=os.environ['rkeS3Bucket']
-                  snsTopicArn=event['Records'][0]['Sns']['TopicArn']
-                  snsMessage=json.loads(event['Records'][0]['Sns']['Message'])
-
-                  lifecycleHookName=snsMessage['LifecycleHookName']
-                  lifecycleActionToken=snsMessage['LifecycleActionToken']
-
-                  asgName=snsMessage['AutoScalingGroupName']
-                  
-                  rkeConfig = generateRKEConfig(asgName,instanceUser,keyName)
-
-                  if rkeConfig:
-                      try:
-                          encoded_payload = rkeConfig.encode("utf-8")
-                          s3Client.Bucket(rkeS3Bucket).put_object(Key=config.yaml, Body=encoded_payload)
-                          response = autoscalingClient.complete_lifecycle_action(LifecycleHookName=lifecycleHookName,AutoScalingGroupName=asgName,LifecycleActionToken=lifecycleActionToken,LifecycleActionResult='CONTINUE')
-                      except BaseException as e:
-                          print(str(e))
-                  elif:
-                      time.sleep(5)
-                      publishSNSMessage(snsMessage,snsTopicArn)
       Handler: index.lambda_handler
       Role: !GetAtt 
         - LambdaExecutionRole
         - Arn
+      Code: 
+        S3Bucket: !Ref rkeS3Bucket
+        S3Key: "master.zip"
       Runtime: python3.6
-      Timeout: 10
-
-  LifecycleTestNodes:
-    Type: 'AWS::Lambda::Function'
-    Properties:
-      Environment:
-        Variables:
-          CLUSTER: !Ref AutoScalingGroup
-          KeyName: !Ref KeyName
-          InstanceUser: !Ref InstanceUser
-          rkeS3Bucket:  !Ref rkeS3Bucket
-      Code:
-        ZipFile: !Join 
-          - ''
-          - - |
-              import boto3,json,os,time
-              ec2Client = boto3.client('ec2')
-              autoscalingClient = boto3.client('autoscaling')
-              snsClient = boto3.client('sns')
-              lambdaClient = boto3.client('lambda')
-              s3Client = boto3.resource("s3")
-
-              def publishSNSMessage(snsMessage,snsTopicArn):
-                  response = snsClient.publish(TopicArn=snsTopicArn,Message=json.dumps(snsMessage),Subject='Rebalancing')
-
-              def checkEc2s(asgName):
-                  filters = [{  
-                  'Name': 'tag:aws:autoscaling:groupName',
-                  'Values': [asgName]
-                  }]
-                  ec2ContainerInstances = ec2Client.describe_instances(Filters=filters)
-                  print(str(ec2ContainerInstances))
-                  pendingEc2s = 0
-                  activeEc2s = 0
-                  for i in range(len(ec2ContainerInstances['Reservations'])):
-                      instance = ec2ContainerInstances['Reservations'][i]['Instances'][0]
-                      print(str(instance['State']['Name']))
-                      print(str(instance))
-                      if instance['State']['Name'] == 'disabling':
-                          pendingEc2s = pendingEc2s + 1
-                      elif instance['State']['Name'] == 'pending':
-                          pendingEc2s = pendingEc2s + 1
-                      elif instance['State']['Name'] == 'running':
-                          activeEc2s = activeEc2s + 1
-                  print("Active EC2s: ",activeEc2s)
-                  return pendingEc2s
-
-              def lambda_handler(event, context):
-                  instanceUser=os.environ['InstanceUser']
-                  keyName=os.environ['KeyName']
-                  FQDN=os.environ['FQDN']
-                  rkeS3Bucket=os.environ['rkeS3Bucket']
-                  snsTopicArn=event['Records'][0]['Sns']['TopicArn']
-                  snsMessage=json.loads(event['Records'][0]['Sns']['Message'])
-                  lifecycleHookName=snsMessage['LifecycleHookName']
-                  lifecycleActionToken=snsMessage['LifecycleActionToken']
-                  asgName=snsMessage['AutoScalingGroupName']
-                  pendingEc2s=checkEc2s(asgName);
-                  if pendingEc2s==0:
-                      try:
-                          response = autoscalingClient.complete_lifecycle_action(LifecycleHookName=lifecycleHookName,AutoScalingGroupName=asgName,LifecycleActionToken=lifecycleActionToken,LifecycleActionResult='CONTINUE')
-                      except BaseException as e:
-                          print(str(e))
-                  elif pendingEc2s>=1:
-                      time.sleep(5)
-                      publishSNSMessage(snsMessage,snsTopicArn)
-      Handler: index.lambda_handler
-      Role: !GetAtt 
-        - LambdaExecutionRole
-        - Arn
-      Runtime: python3.6
-      Timeout: 10
+      Timeout: 30
+    DependsOn: LifecycleInitRkeS3

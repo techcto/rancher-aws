@@ -1,4 +1,0 @@
-ghost:
-  image: ghost:0.7.8
-  ports:
-    - "${client_port}:2368"

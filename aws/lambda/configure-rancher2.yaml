@@ -44,11 +44,6 @@ Resources:
       Subscription:
         - 
           Endpoint: !GetAtt 
-            - LifecycleInitRkeS3
-            - Arn
-          Protocol: lambda
-        - 
-          Endpoint: !GetAtt 
             - LifecycleExecuteRKE
             - Arn
           Protocol: lambda
@@ -123,6 +118,10 @@ Resources:
                   - 'sns:Publish'
                   - 'sns:ListSubscriptions'
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 's3:*'
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref 'rkeS3Bucket', /*]]
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -135,58 +134,62 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole'
 
-  LambdaInvokePermission:
-    Type: 'AWS::Lambda::Permission'
-    Properties:
-      FunctionName: !Ref LifecycleInitRkeS3
-      Action: 'lambda:InvokeFunction'
-      Principal: sns.amazonaws.com
-      SourceArn: !Ref NotificationTopic
-
-  LifecycleInitRkeS3:
+  S3InitRKE:
     Type: 'AWS::Lambda::Function'
     Properties:
       Environment:
         Variables:
           rkeS3Bucket:  !Ref rkeS3Bucket
           S3initRKE: 'https://github.com/techcto/S3initRKE/archive/master.zip'
+          lambdaZip: 'master.zip'
       Code:
         ZipFile: !Join 
           - ''
           - - |
               'use strict';
 
-              const fetch = require('node-fetch');
               const AWS = require('aws-sdk'); 
               const s3 = new AWS.S3();
+              const https = require('https');
+              const fs = require('fs');
 
               exports.handler = (event, context, callback) => {
                 console.log(JSON.stringify(event));
 
-                fetch(process.env.S3initRKE)
-                  .then((response) => {
-                    if (response.ok) {
-                      return response;
-                    }
-                    return Promise.reject(new Error(
-                          `Failed to fetch ${response.url}: ${response.status} ${response.statusText}`));
-                  })
-                  .then(response => response.buffer())
-                  .then(buffer => (
+                var rkeZip = fs.createWriteStream('/tmp/'+process.env.lambdaZip);
+                var rkeZipRequest = https.get(process.env.S3initRKE, function(rkeZipResponse) {
+                  rkeZipResponse.pipe(rkeZip);
+                  console.log("downloaded RKE lambda");
+
+                  fs.readFile('/tmp/'+process.env.lambdaZip, function (err, data) {
+                    if (err) { throw err; }
+
+                    var base64data = new Buffer(data, 'binary');
+
                     s3.putObject({
                       Bucket: process.env.rkeS3Bucket,
-                      Key: event.key,
-                      Body: buffer,
-                    }).promise()
-                  ))
-                  .then(v => callback(null, v), callback);
+                      Key: process.env.lambdaZip,
+                      Body: base64data
+                    },function (resp) {
+                      console.log(arguments);
+                      console.log('Successfully uploaded package.');
+                    });
+
+                  });
+                });
               };
       Handler: index.handler
       Role: !GetAtt 
         - LambdaExecutionRole
         - Arn
       Runtime: nodejs6.10
-      Timeout: 20
+      Timeout: 30
+
+  ExecuteS3InitRKE:
+		Type: 'Custom::ExecuteS3InitRKE'
+    Properties:
+      ServiceToken: !GetAtt S3InitRKE.Arn
+      Region: !Ref "AWS::Region"
 
   LambdaInvokePermission:
     Type: 'AWS::Lambda::Permission'
@@ -205,7 +208,7 @@ Resources:
           KeyName: !Ref KeyName
           InstanceUser: !Ref InstanceUser
           rkeS3Bucket:  !Ref rkeS3Bucket
-      Handler: index.lambda_handler
+      Handler: rke.run
       Role: !GetAtt 
         - LambdaExecutionRole
         - Arn
@@ -214,4 +217,4 @@ Resources:
         S3Key: "master.zip"
       Runtime: python3.6
       Timeout: 30
-    DependsOn: LifecycleInitRkeS3
+    DependsOn: ExecuteS3InitRKE

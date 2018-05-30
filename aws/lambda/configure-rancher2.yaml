@@ -49,7 +49,7 @@ Resources:
           Protocol: lambda
         - 
           Endpoint: !GetAtt 
-            - LifecycleGenerateRKE
+            - LifecycleExecuteRKE
             - Arn
           Protocol: lambda
     DependsOn: LifecycleExecuteRKE

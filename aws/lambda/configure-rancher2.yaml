@@ -140,56 +140,35 @@ Resources:
       Environment:
         Variables:
           rkeS3Bucket:  !Ref rkeS3Bucket
-          S3initRKE: 'https://github.com/techcto/S3initRKE/archive/master.zip'
-          lambdaZip: 'master.zip'
+          S3initRKE: 'https://s3.amazonaws.com/techcto-datacenter/S3InitRKE.zip'
+          lambdaZip: 'S3InitRKE.zip'
       Code:
         ZipFile: !Join 
           - ''
           - - |
-              'use strict';
+              import boto3,os
+              import botocore.vendored.requests.packages.urllib3 as urllib3
 
-              const AWS = require('aws-sdk'); 
-              const s3 = new AWS.S3();
-              const https = require('https');
-              const fs = require('fs');
+              def handler(event, context):
+                  url=os.environ['S3initRKE']
+                  bucket = os.environ['rkeS3Bucket']
+                  key = os.environ['lambdaZip']
 
-              exports.handler = (event, context, callback) => {
-                console.log(JSON.stringify(event));
-
-                var rkeZip = fs.createWriteStream('/tmp/'+process.env.lambdaZip);
-                var rkeZipRequest = https.get(process.env.S3initRKE, function(rkeZipResponse) {
-                  rkeZipResponse.pipe(rkeZip);
-                  console.log("downloaded RKE lambda");
-
-                  fs.readFile('/tmp/'+process.env.lambdaZip, function (err, data) {
-                    if (err) { throw err; }
-
-                    var base64data = new Buffer(data, 'binary');
-
-                    s3.putObject({
-                      Bucket: process.env.rkeS3Bucket,
-                      Key: process.env.lambdaZip,
-                      Body: base64data
-                    },function (resp) {
-                      console.log(arguments);
-                      console.log('Successfully uploaded package.');
-                    });
-
-                  });
-                });
-              };
+                  s3=boto3.client('s3')
+                  http=urllib3.PoolManager()
+                  s3.upload_fileobj(http.request('GET', url,preload_content=False), bucket, key)
       Handler: index.handler
       Role: !GetAtt 
         - LambdaExecutionRole
         - Arn
-      Runtime: nodejs6.10
+      Runtime: python3.6
       Timeout: 30
 
   ExecuteS3InitRKE:
-		Type: 'Custom::ExecuteS3InitRKE'
+    Type: 'Custom::ExecuteS3InitRKE'
     Properties:
       ServiceToken: !GetAtt S3InitRKE.Arn
-      Region: !Ref "AWS::Region"
+      Region: !Ref 'AWS::Region'
 
   LambdaInvokePermission:
     Type: 'AWS::Lambda::Permission'
@@ -214,7 +193,7 @@ Resources:
         - Arn
       Code: 
         S3Bucket: !Ref rkeS3Bucket
-        S3Key: "master.zip"
+        S3Key: 'S3InitRKE.zip'
       Runtime: python3.6
       Timeout: 30
     DependsOn: ExecuteS3InitRKE

@@ -5,38 +5,35 @@ Description: >
 Parameters:
 
     EnvironmentName:
-        Description: An environment name that will be prefixed to resource names
-        Type: String
+      Description: An environment name that will be prefixed to resource names
+      Type: String
 
     AutoScalingGroup:
-        Description: The AutoScalingGroup that the EC2 cluster is deployed to
-        Type: String
+      Description: The AutoScalingGroup that the EC2 cluster is deployed to
+      Type: String
 
     KeyName:
-        Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
-        Type: String
+      Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+      Type: String
 
     InstanceUser:
-        Type: String
-        Default: 'ec2-user'
-        Description: Name of admin user for instance (ec2-user for example)
+      Type: String
+      Default: 'ec2-user'
+      Description: Name of admin user for instance (ec2-user for example)
 
     FQDN:
-        Type: String
-        Description: Fully qualified URL for using app.  DNS of FQDN must be pointed to CNAME of ALB.
+      Type: String
+      Description: Fully qualified URL for using app.  DNS of FQDN must be pointed to CNAME of ALB.
+
+    rkeS3Bucket:
+      Type: String
+      Description: A reference to the S3 bucket for rke
+
+    rkeUserPem:
+      Type: String
+      Description: A reference to the PEM ile for rke-user
     
 Resources:
-
-  rkeS3Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Join ['-', [!Ref 'EnvironmentName', 'rke']]
-      AccessControl: 'BucketOwnerFullControl'
-      Tags:
-        -
-          Key: 'Name'
-          Value: !Join ['-', [!Ref 'EnvironmentName', 'S3']]
-    DeletionPolicy: Delete
 
   NotificationTopic:
     Type: 'AWS::SNS::Topic'
@@ -134,42 +131,6 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole'
 
-  S3InitRKE:
-    Type: 'AWS::Lambda::Function'
-    Properties:
-      Environment:
-        Variables:
-          rkeS3Bucket:  !Ref rkeS3Bucket
-          S3initRKE: 'https://s3.amazonaws.com/techcto-datacenter/S3InitRKE.zip'
-          lambdaZip: 'S3InitRKE.zip'
-      Code:
-        ZipFile: !Join 
-          - ''
-          - - |
-              import boto3,os
-              import botocore.vendored.requests.packages.urllib3 as urllib3
-
-              def handler(event, context):
-                  url=os.environ['S3initRKE']
-                  bucket = os.environ['rkeS3Bucket']
-                  key = os.environ['lambdaZip']
-
-                  s3=boto3.client('s3')
-                  http=urllib3.PoolManager()
-                  s3.upload_fileobj(http.request('GET', url,preload_content=False), bucket, key)
-      Handler: index.handler
-      Role: !GetAtt 
-        - LambdaExecutionRole
-        - Arn
-      Runtime: python3.6
-      Timeout: 30
-
-  ExecuteS3InitRKE:
-    Type: 'Custom::ExecuteS3InitRKE'
-    Properties:
-      ServiceToken: !GetAtt S3InitRKE.Arn
-      Region: !Ref 'AWS::Region'
-
   LambdaInvokePermission:
     Type: 'AWS::Lambda::Permission'
     Properties:
@@ -187,13 +148,21 @@ Resources:
           KeyName: !Ref KeyName
           InstanceUser: !Ref InstanceUser
           rkeS3Bucket:  !Ref rkeS3Bucket
+          FQDN: !Ref FQDN
+          instancePEM: !Ref rkeUserPem
       Handler: rke.run
       Role: !GetAtt 
         - LambdaExecutionRole
         - Arn
       Code: 
         S3Bucket: !Ref rkeS3Bucket
-        S3Key: 'S3InitRKE.zip'
+        S3Key: 'S3initRKE.zip'
       Runtime: python3.6
-      Timeout: 30
+      Timeout: 300
     DependsOn: ExecuteS3InitRKE
+
+  ExecuteLifecycleExecuteRKE:
+    Type: 'Custom::ExecuteLifecycleExecuteRKE'
+    Properties:
+      ServiceToken: !GetAtt LifecycleExecuteRKE.Arn
+      Region: !Ref 'AWS::Region'

@@ -78,6 +78,8 @@ Resources:
                 KeyName: !Ref KeyName
                 InstanceUser: !Ref InstanceUser
                 FQDN: !Ref FQDN
+                rkeS3Bucket: !GetAtt EC2.Outputs.rkeS3Bucket
+                rkeUserPem: !GetAtt EC2.Outputs.rkeUserPem
 
 Outputs:
 

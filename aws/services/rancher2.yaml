@@ -140,6 +140,76 @@ Mappings:
 
 Resources:
 
+    rkeS3Bucket:
+        Type: AWS::S3::Bucket
+        Properties:
+        BucketName: !Join ['-', [!Ref 'EnvironmentName', 'rke']]
+        AccessControl: 'BucketOwnerFullControl'
+        Tags:
+            -
+            Key: 'Name'
+            Value: !Join ['-', [!Ref 'EnvironmentName', 'S3']]
+        DeletionPolicy: Delete
+
+    S3InitRKE:
+        Type: 'AWS::Lambda::Function'
+        Properties:
+        Environment:
+            Variables:
+            rkeS3Bucket:  !Ref rkeS3Bucket
+            S3initRKE: 'https://s3.amazonaws.com/techcto-datacenter/rke/S3initRKE.zip'
+            lambdaZip: 'S3initRKE.zip'
+        Code:
+            ZipFile: !Join 
+            - ''
+            - - |
+                import cfnresponse
+                import boto3,os
+                import botocore.vendored.requests.packages.urllib3 as urllib3
+                from botocore.client import Config
+                OPENSSL = '/usr/bin/openssl'
+
+                def openssl(*args):
+                    cmdline = [OPENSSL] + list(args)
+                    subprocess.check_call(cmdline)
+
+                def handler(event, context):
+                    url = os.environ['S3initRKE']
+                    bucket = os.environ['rkeS3Bucket']
+                    key = os.environ['lambdaZip']
+                    responseData = {}
+
+                    #Upload RKE Lambda
+                    s3 = boto3.client('s3', config=Config(signature_version='s3v4'))
+                    http = urllib3.PoolManager()
+                    s3.upload_fileobj(http.request('GET', url, preload_content=False), bucket, key)
+
+                    #Generate Key Pair for docker-user
+                    os.environ['HOME'] = '/tmp'
+                    openssl("req", "-new", "-newkey", "rsa:2048", "-days", "3650", "-nodes", "-subj", "/C=US/ST=Florida/L=Orlando/O=spacemade/OU=org unit/CN=" +FQDN, "-keyout", "/tmp/server.key", "-out", "/tmp/server.crt")
+
+                    #read key file
+                    with open("/tmp/server.key", "rb") as key:
+                        responseData['key'] = base64.b64encode(key.read())
+
+                    responseData['status'] = "success"
+                    try:
+                        cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                    except BaseException as e:
+                        print(str(e))
+        Handler: index.handler
+        Role: !GetAtt 
+            - LambdaExecutionRole
+            - Arn
+        Runtime: python3.6
+        Timeout: 30
+
+    ExecuteS3InitRKE:
+        Type: 'Custom::ExecuteS3InitRKE'
+        Properties:
+        ServiceToken: !GetAtt S3InitRKE.Arn
+        Region: !Ref 'AWS::Region'
+
     EC2AutoScalingGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
         Properties: 
@@ -250,6 +320,12 @@ Resources:
                                 files: 
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+                    users:
+                        -   name: rke-user
+                            gecos: 'RKE User'
+                            groups: docker
+                            ssh_authorized_keys:
+                                - !GetAtt ExecuteS3InitRKE.key
                     commands:
                         1_install_docker:
                             command: !Sub sudo yum -y install docker
@@ -269,7 +345,6 @@ Resources:
                             command: !Sub service docker start
                         9_restart_sshd:
                             command: !Sub service sshd restart
-
     EC2Role:
         Type: AWS::IAM::Role
         Properties: 
@@ -397,3 +472,11 @@ Outputs:
     EC2HostSecurityGroup:
         Description: A reference to the EC2HostSecurityGroup
         Value: !Ref EC2HostSecurityGroup
+
+    rkeS3Bucket:
+        Description: A reference to the S3 bucket for rke
+        Value: !Ref rkeS3Bucket
+
+    rkeUserPem:
+        Description: Private PEM string for rke-user
+        Value: !GetAtt ExecuteS3InitRKE.key

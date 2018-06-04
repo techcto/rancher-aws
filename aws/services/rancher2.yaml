@@ -143,22 +143,22 @@ Resources:
     rkeS3Bucket:
         Type: AWS::S3::Bucket
         Properties:
-        BucketName: !Join ['-', [!Ref 'EnvironmentName', 'rke']]
-        AccessControl: 'BucketOwnerFullControl'
-        Tags:
-            -
-            Key: 'Name'
-            Value: !Join ['-', [!Ref 'EnvironmentName', 'S3']]
+            BucketName: !Join ['-', [!Ref 'EnvironmentName', 'rke']]
+            AccessControl: 'BucketOwnerFullControl'
+            Tags:
+                -
+                  Key: 'Name'
+                  Value: !Join ['-', [!Ref 'EnvironmentName', 'S3']]
         DeletionPolicy: Delete
 
     S3InitRKE:
         Type: 'AWS::Lambda::Function'
         Properties:
-        Environment:
-            Variables:
-            rkeS3Bucket:  !Ref rkeS3Bucket
-            S3initRKE: 'https://s3.amazonaws.com/techcto-datacenter/rke/S3initRKE.zip'
-            lambdaZip: 'S3initRKE.zip'
+            Environment:
+                Variables:
+                    rkeS3Bucket:  !Ref rkeS3Bucket
+                    S3initRKE: 'https://s3.amazonaws.com/techcto-datacenter/rke/S3initRKE.zip'
+                    lambdaZip: 'S3initRKE.zip'
         Code:
             ZipFile: !Join 
             - ''
@@ -192,6 +192,10 @@ Resources:
                     with open("/tmp/server.key", "rb") as key:
                         responseData['key'] = base64.b64encode(key.read())
 
+                    #read crt file
+                    with open("/tmp/server.crt", "rb") as crt:
+                        responseData['crt'] = base64.b64encode(crt.read())
+
                     responseData['status'] = "success"
                     try:
                         cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
@@ -207,8 +211,8 @@ Resources:
     ExecuteS3InitRKE:
         Type: 'Custom::ExecuteS3InitRKE'
         Properties:
-        ServiceToken: !GetAtt S3InitRKE.Arn
-        Region: !Ref 'AWS::Region'
+            ServiceToken: !GetAtt S3InitRKE.Arn
+            Region: !Ref 'AWS::Region'
 
     EC2AutoScalingGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
@@ -325,7 +329,7 @@ Resources:
                             gecos: 'RKE User'
                             groups: docker
                             ssh_authorized_keys:
-                                - !GetAtt ExecuteS3InitRKE.key
+                                - !Join [' ', ['ssh-rsa', !GetAtt ExecuteS3InitRKE.key]]
                     commands:
                         1_install_docker:
                             command: !Sub sudo yum -y install docker
@@ -480,3 +484,7 @@ Outputs:
     rkeUserPem:
         Description: Private PEM string for rke-user
         Value: !GetAtt ExecuteS3InitRKE.key
+
+    rkeUserCrt:
+        Description: Public CRT string for rke-user
+        Value: !GetAtt ExecuteS3InitRKE.crt

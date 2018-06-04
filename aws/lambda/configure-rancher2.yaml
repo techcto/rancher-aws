@@ -31,7 +31,11 @@ Parameters:
 
     rkeUserPem:
       Type: String
-      Description: A reference to the PEM ile for rke-user
+      Description: A reference to the PEM for rke-user
+
+    rkeUserCrt:
+      Type: String
+      Description: A reference to the CRT for rke-user
     
 Resources:
 
@@ -150,6 +154,7 @@ Resources:
           rkeS3Bucket:  !Ref rkeS3Bucket
           FQDN: !Ref FQDN
           instancePEM: !Ref rkeUserPem
+          instanceCRT: !Ref rkeUserCrt
       Handler: rke.run
       Role: !GetAtt 
         - LambdaExecutionRole

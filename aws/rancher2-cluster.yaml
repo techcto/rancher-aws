@@ -79,6 +79,7 @@ Resources:
                 InstanceUser: !Ref InstanceUser
                 FQDN: !Ref FQDN
                 rkeS3Bucket: !GetAtt EC2.Outputs.rkeS3Bucket
+                LambdaExecutionRole: !GetAtt EC2.Outputs.LambdaExecutionRole
                 rkeUserPem: !GetAtt EC2.Outputs.rkeUserPem
                 rkeUserCrt: !GetAtt EC2.Outputs.rkeUserCrt
 

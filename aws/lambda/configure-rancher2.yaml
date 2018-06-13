@@ -29,6 +29,10 @@ Parameters:
       Type: String
       Description: A reference to the S3 bucket for rke
 
+    LambdaExecutionRole:
+      Type: String
+      Description: A reference to the lambda execution role
+
     rkeUserPem:
       Type: String
       Description: A reference to the PEM for rke-user
@@ -91,50 +95,6 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole'
 
-  LambdaExecutionRole:
-    Type: 'AWS::IAM::Role'
-    Properties:
-      Policies:
-        - PolicyName: lambda-inline
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - 'autoscaling:CompleteLifecycleAction'
-                  - 'logs:CreateLogGroup'
-                  - 'logs:CreateLogStream'
-                  - 'logs:PutLogEvents'
-                  - 'ec2:DescribeInstances'
-                  - 'ec2:DescribeInstanceAttribute'
-                  - 'ec2:DescribeInstanceStatus'
-                  - 'ec2:DescribeHosts'
-                  - 'ecs:ListContainerInstances'
-                  - 'ecs:SubmitContainerStateChange'
-                  - 'ecs:SubmitTaskStateChange'
-                  - 'ecs:DescribeContainerInstances'
-                  - 'ecs:UpdateContainerInstancesState'
-                  - 'ecs:ListTasks'
-                  - 'ecs:DescribeTasks'
-                  - 'sns:Publish'
-                  - 'sns:ListSubscriptions'
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - 's3:*'
-                Resource: !Join ['', ['arn:aws:s3:::', !Ref 'rkeS3Bucket', /*]]
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole'
-
   LambdaInvokePermission:
     Type: 'AWS::Lambda::Permission'
     Properties:
@@ -154,17 +114,13 @@ Resources:
           rkeS3Bucket:  !Ref rkeS3Bucket
           FQDN: !Ref FQDN
           instancePEM: !Ref rkeUserPem
-          instanceCRT: !Ref rkeUserCrt
       Handler: rke.run
-      Role: !GetAtt 
-        - LambdaExecutionRole
-        - Arn
+      Role: !Ref LambdaExecutionRole
       Code: 
         S3Bucket: !Ref rkeS3Bucket
         S3Key: 'S3initRKE.zip'
       Runtime: python3.6
       Timeout: 300
-    DependsOn: ExecuteS3InitRKE
 
   ExecuteLifecycleExecuteRKE:
     Type: 'Custom::ExecuteLifecycleExecuteRKE'

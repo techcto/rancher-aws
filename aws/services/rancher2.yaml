@@ -151,6 +151,50 @@ Resources:
                   Value: !Join ['-', [!Ref 'EnvironmentName', 'S3']]
         DeletionPolicy: Delete
 
+    LambdaExecutionRole:
+        Type: 'AWS::IAM::Role'
+        Properties:
+            Policies:
+                - PolicyName: lambda-inline
+                  PolicyDocument:
+                    Version: 2012-10-17
+                    Statement:
+                    - Effect: Allow
+                      Action:
+                        - 'autoscaling:CompleteLifecycleAction'
+                        - 'logs:CreateLogGroup'
+                        - 'logs:CreateLogStream'
+                        - 'logs:PutLogEvents'
+                        - 'ec2:DescribeInstances'
+                        - 'ec2:DescribeInstanceAttribute'
+                        - 'ec2:DescribeInstanceStatus'
+                        - 'ec2:DescribeHosts'
+                        - 'ecs:ListContainerInstances'
+                        - 'ecs:SubmitContainerStateChange'
+                        - 'ecs:SubmitTaskStateChange'
+                        - 'ecs:DescribeContainerInstances'
+                        - 'ecs:UpdateContainerInstancesState'
+                        - 'ecs:ListTasks'
+                        - 'ecs:DescribeTasks'
+                        - 'sns:Publish'
+                        - 'sns:ListSubscriptions'
+                      Resource: '*'
+                    - Effect: Allow
+                      Action:
+                        - 's3:*'
+                      Resource: !Join ['', ['arn:aws:s3:::', !Ref 'rkeS3Bucket', /*]]
+            AssumeRolePolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                - Effect: Allow
+                  Principal:
+                    Service:
+                        - lambda.amazonaws.com
+                  Action:
+                    - 'sts:AssumeRole'
+            ManagedPolicyArns:
+                - 'arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole'
+
     S3InitRKE:
         Type: 'AWS::Lambda::Function'
         Properties:
@@ -159,54 +203,58 @@ Resources:
                     rkeS3Bucket:  !Ref rkeS3Bucket
                     S3initRKE: 'https://s3.amazonaws.com/techcto-datacenter/rke/S3initRKE.zip'
                     lambdaZip: 'S3initRKE.zip'
-        Code:
-            ZipFile: !Join 
-            - ''
-            - - |
-                import cfnresponse
-                import boto3,os
-                import botocore.vendored.requests.packages.urllib3 as urllib3
-                from botocore.client import Config
-                OPENSSL = '/usr/bin/openssl'
+            Code:
+                ZipFile: !Join 
+                - ''
+                - - |
+                    import cfnresponse
+                    import boto3,os,subprocess,base64,json
+                    import botocore.vendored.requests.packages.urllib3 as urllib3
+                    from botocore.client import Config
+                    OPENSSL = '/usr/bin/openssl'
 
-                def openssl(*args):
-                    cmdline = [OPENSSL] + list(args)
-                    subprocess.check_call(cmdline)
+                    def openssl(*args):
+                        cmdline = [OPENSSL] + list(args)
+                        subprocess.check_call(cmdline)
 
-                def handler(event, context):
-                    url = os.environ['S3initRKE']
-                    bucket = os.environ['rkeS3Bucket']
-                    key = os.environ['lambdaZip']
-                    responseData = {}
+                    def handler(event, context):
+                        url = os.environ['S3initRKE']
+                        bucket = os.environ['rkeS3Bucket']
+                        key = os.environ['lambdaZip']
+                        responseData = {}
 
-                    #Upload RKE Lambda
-                    s3 = boto3.client('s3', config=Config(signature_version='s3v4'))
-                    http = urllib3.PoolManager()
-                    s3.upload_fileobj(http.request('GET', url, preload_content=False), bucket, key)
+                        #Upload RKE Lambda
+                        s3 = boto3.client('s3', config=Config(signature_version='s3v4'))
+                        http = urllib3.PoolManager()
+                        s3.upload_fileobj(http.request('GET', url, preload_content=False), bucket, key)
 
-                    #Generate Key Pair for docker-user
-                    os.environ['HOME'] = '/tmp'
-                    openssl("req", "-new", "-newkey", "rsa:2048", "-days", "3650", "-nodes", "-subj", "/C=US/ST=Florida/L=Orlando/O=spacemade/OU=org unit/CN=" +FQDN, "-keyout", "/tmp/server.key", "-out", "/tmp/server.crt")
+                        #Generate Key Pair for docker-user
+                        os.environ['HOME'] = '/tmp'
+                        openssl("genrsa", "-passout", "pass:x", "-des3", "-out", "/tmp/private.pem", "2048")
+                        openssl("rsa", "-passin", "pass:x", "-in", "/tmp/private.pem", "-outform", "PEM", "-pubout", "-out", "/tmp/public.pem")
 
-                    #read key file
-                    with open("/tmp/server.key", "rb") as key:
-                        responseData['key'] = base64.b64encode(key.read())
+                        with open("/tmp/private.pem", "rb") as private:
+                            responseData['private'] = json.dumps(private.read().decode("utf-8"))
+                        
+                        print(responseData['private'])
 
-                    #read crt file
-                    with open("/tmp/server.crt", "rb") as crt:
-                        responseData['crt'] = base64.b64encode(crt.read())
+                        print("read public pem")
+                        with open("/tmp/public.pem", "rb") as public:
+                            responseData['public'] = json.dumps(public.read().decode("utf-8"))
+                            
+                        print(responseData['public'])
 
-                    responseData['status'] = "success"
-                    try:
-                        cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
-                    except BaseException as e:
-                        print(str(e))
-        Handler: index.handler
-        Role: !GetAtt 
-            - LambdaExecutionRole
-            - Arn
-        Runtime: python3.6
-        Timeout: 30
+                        responseData['status'] = "success"
+                        try:
+                            cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                        except BaseException as e:
+                            print(str(e))
+            Handler: index.handler
+            Role: !GetAtt 
+                - LambdaExecutionRole
+                - Arn
+            Runtime: python3.6
+            Timeout: 30
 
     ExecuteS3InitRKE:
         Type: 'Custom::ExecuteS3InitRKE'
@@ -291,6 +339,12 @@ Resources:
                     yum install -y aws-cfn-bootstrap
                     yum update -y
                     mount --make-shared /
+                    adduser rke-user
+                    cd /home/rke-user
+                    mkdir .ssh
+                    chmod 700 .ssh
+                    echo 'ssh-rsa '+${ExecuteS3InitRKE.public}+' rke-user' > .ssh/authorized_keys
+                    chmod 600 .ssh/authorized_keys
                     /opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
 
@@ -324,12 +378,6 @@ Resources:
                                 files: 
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
-                    users:
-                        -   name: rke-user
-                            gecos: 'RKE User'
-                            groups: docker
-                            ssh_authorized_keys:
-                                - !Join [' ', ['ssh-rsa', !GetAtt ExecuteS3InitRKE.key]]
                     commands:
                         1_install_docker:
                             command: !Sub sudo yum -y install docker
@@ -481,10 +529,14 @@ Outputs:
         Description: A reference to the S3 bucket for rke
         Value: !Ref rkeS3Bucket
 
+    LambdaExecutionRole:
+        Description: A reference to the lambda execution role
+        Value: !GetAtt LambdaExecutionRole.Arn
+
     rkeUserPem:
         Description: Private PEM string for rke-user
-        Value: !GetAtt ExecuteS3InitRKE.key
+        Value: !GetAtt ExecuteS3InitRKE.private
 
     rkeUserCrt:
         Description: Public CRT string for rke-user
-        Value: !GetAtt ExecuteS3InitRKE.crt
+        Value: !GetAtt ExecuteS3InitRKE.public

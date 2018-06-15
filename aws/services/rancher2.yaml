@@ -1,5 +1,5 @@
 Description: >
-    This template deploys an EC2 cluster to the provided VPC and subnets 
+    This template deploys a Rancher HA EC2 cluster to the provided VPC and subnets 
     using an Auto Scaling Group
 
 Parameters:
@@ -228,19 +228,19 @@ Resources:
                         http = urllib3.PoolManager()
                         s3.upload_fileobj(http.request('GET', url, preload_content=False), bucket, key)
 
-                        #Generate Key Pair for docker-user
+                        #Generate Key Pair for rke-user
                         os.environ['HOME'] = '/tmp'
                         openssl("genrsa", "-passout", "pass:x", "-des3", "-out", "/tmp/private.pem", "2048")
                         openssl("rsa", "-passin", "pass:x", "-in", "/tmp/private.pem", "-outform", "PEM", "-pubout", "-out", "/tmp/public.pem")
 
                         with open("/tmp/private.pem", "rb") as private:
-                            responseData['private'] = json.dumps(private.read().decode("utf-8"))
+                            responseData['private'] = private.read().decode("utf-8")
                         
                         print(responseData['private'])
 
                         print("read public pem")
                         with open("/tmp/public.pem", "rb") as public:
-                            responseData['public'] = json.dumps(public.read().decode("utf-8"))
+                            responseData['public'] = public.read().decode("utf-8")
                             
                         print(responseData['public'])
 
@@ -264,6 +264,7 @@ Resources:
 
     EC2AutoScalingGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
+        DependsOn: "ExecuteS3InitRKE"
         Properties: 
             VPCZoneIdentifier: !Ref Subnets
             LaunchConfigurationName: !Ref EC2LaunchConfiguration
@@ -343,8 +344,14 @@ Resources:
                     cd /home/rke-user
                     mkdir .ssh
                     chmod 700 .ssh
-                    echo 'ssh-rsa '+${ExecuteS3InitRKE.public}+' rke-user' > .ssh/authorized_keys
+                    echo "${ExecuteS3InitRKE.private}"
+                    echo "${ExecuteS3InitRKE.private}" > /tmp/private.pem
+                    chmod 600 /tmp/private.pem
+                    echo "Convert SSL key file to SSH"
+                    ssh-keygen -y -P "x" -f /tmp/private.pem > .ssh/authorized_keys
+                    echo -n " rke-user" >> .ssh/authorized_keys
                     chmod 600 .ssh/authorized_keys
+                    rm -f /tmp/private.pem
                     /opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
 

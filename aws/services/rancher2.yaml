@@ -235,6 +235,9 @@ Resources:
 
                         with open("/tmp/private.pem", "rb") as private:
                             responseData['private'] = private.read().decode("utf-8")
+
+                        with open("/tmp/private.pem", "rb") as key:
+                            responseData['key'] = base64.b64encode(key.read())
                         
                         print(responseData['private'])
 
@@ -543,6 +546,10 @@ Outputs:
     rkeUserPem:
         Description: Private PEM string for rke-user
         Value: !GetAtt ExecuteS3InitRKE.private
+
+    rkeUserKey:
+        Description: Private Key for rke-user
+        Value: !GetAtt ExecuteS3InitRKE.key
 
     rkeUserCrt:
         Description: Public CRT string for rke-user

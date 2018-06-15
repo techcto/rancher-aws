@@ -40,6 +40,10 @@ Parameters:
     rkeUserCrt:
       Type: String
       Description: A reference to the CRT for rke-user
+
+    rkeUserKey:
+      Type: String
+      Description: A reference to the Key for rke-user
     
 Resources:
 
@@ -113,7 +117,7 @@ Resources:
           InstanceUser: !Ref InstanceUser
           rkeS3Bucket:  !Ref rkeS3Bucket
           FQDN: !Ref FQDN
-          instancePEM: !Ref rkeUserPem
+          instancePEM: !Ref rkeUserKey
       Handler: rke.run
       Role: !Ref LambdaExecutionRole
       Code: 

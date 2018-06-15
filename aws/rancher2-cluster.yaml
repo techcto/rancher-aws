@@ -81,6 +81,7 @@ Resources:
                 rkeS3Bucket: !GetAtt EC2.Outputs.rkeS3Bucket
                 LambdaExecutionRole: !GetAtt EC2.Outputs.LambdaExecutionRole
                 rkeUserPem: !GetAtt EC2.Outputs.rkeUserPem
+                rkeUserKey: !GetAtt EC2.Outputs.rkeUserKey
                 rkeUserCrt: !GetAtt EC2.Outputs.rkeUserCrt
 
 Outputs:

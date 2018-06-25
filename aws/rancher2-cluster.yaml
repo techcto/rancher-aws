@@ -38,8 +38,8 @@ Parameters:
 
     InstanceUser:
         Type: String
-        Default: 'ec2-user'
-        Description: Name of admin user for instance (ec2-user for example)
+        Default: 'rke-user'
+        Description: Name of admin user for instance (rke-user for example)
 
 Resources:
 
@@ -80,9 +80,6 @@ Resources:
                 FQDN: !Ref FQDN
                 rkeS3Bucket: !GetAtt EC2.Outputs.rkeS3Bucket
                 LambdaExecutionRole: !GetAtt EC2.Outputs.LambdaExecutionRole
-                rkeUserPem: !GetAtt EC2.Outputs.rkeUserPem
-                rkeUserKey: !GetAtt EC2.Outputs.rkeUserKey
-                rkeUserCrt: !GetAtt EC2.Outputs.rkeUserCrt
 
 Outputs:
 

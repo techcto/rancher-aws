@@ -232,20 +232,12 @@ Resources:
                         os.environ['HOME'] = '/tmp'
                         openssl("genrsa", "-passout", "pass:x", "-des3", "-out", "/tmp/private.pem", "2048")
                         openssl("rsa", "-passin", "pass:x", "-in", "/tmp/private.pem", "-outform", "PEM", "-pubout", "-out", "/tmp/public.pem")
+                        openssl("rsa", "-passin", "pass:x", "-in", "/tmp/private.pem", "-out", "/tmp/rsa.pem")
 
-                        with open("/tmp/private.pem", "rb") as private:
-                            responseData['private'] = private.read().decode("utf-8")
-
-                        with open("/tmp/private.pem", "rb") as key:
-                            responseData['key'] = base64.b64encode(key.read())
-                        
-                        print(responseData['private'])
-
-                        print("read public pem")
-                        with open("/tmp/public.pem", "rb") as public:
-                            responseData['public'] = public.read().decode("utf-8")
-                            
-                        print(responseData['public'])
+                        #Upload Instance RSA Key to S3
+                        s3 = boto3.resource('s3')
+                        s3.meta.client.upload_file('/tmp/rsa.pem', rkeS3Bucket, 'rsa.pem')
+                        s3.meta.client.upload_file('/tmp/private.pem', rkeS3Bucket, 'private.pem')
 
                         responseData['status'] = "success"
                         try:
@@ -344,16 +336,19 @@ Resources:
                     yum update -y
                     mount --make-shared /
                     adduser rke-user
+                    usermod -a -G docker rke-user
+                    usermod -a -G wheel rke-user
                     cd /home/rke-user
                     mkdir .ssh
                     chmod 700 .ssh
                     echo "${ExecuteS3InitRKE.private}"
                     echo "${ExecuteS3InitRKE.private}" > /tmp/private.pem
                     chmod 600 /tmp/private.pem
+                    cp /tmp/private.pem /tmp/private.pem.bak
                     echo "Convert SSL key file to SSH"
-                    ssh-keygen -y -P "x" -f /tmp/private.pem > .ssh/authorized_keys
-                    echo -n " rke-user" >> .ssh/authorized_keys
+                    (ssh-keygen -y -P "x" -f /tmp/private.pem | sed -n '1p' | sed '$s/$/ rke-user/') > .ssh/authorized_keys
                     chmod 600 .ssh/authorized_keys
+                    chown -Rf rke-user.rke-user .ssh
                     rm -f /tmp/private.pem
                     /opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
@@ -400,7 +395,7 @@ Resources:
                         5_edit_sshd_config2:
                             command: !Sub echo 'PermitTunnel yes' >> /etc/ssh/sshd_config
                         6_add_user_to_docker:
-                            command: !Sub usermod -a -G docker ec2-user
+                            command: !Sub usermod -a -G docker rke-user
                         7_update_docker_service:
                             command: !Sub echo "MountFlags=shared" >> /usr/lib/systemd/system/docker.service
                         8_start_docker:
@@ -542,15 +537,3 @@ Outputs:
     LambdaExecutionRole:
         Description: A reference to the lambda execution role
         Value: !GetAtt LambdaExecutionRole.Arn
-
-    rkeUserPem:
-        Description: Private PEM string for rke-user
-        Value: !GetAtt ExecuteS3InitRKE.private
-
-    rkeUserKey:
-        Description: Private Key for rke-user
-        Value: !GetAtt ExecuteS3InitRKE.key
-
-    rkeUserCrt:
-        Description: Public CRT string for rke-user
-        Value: !GetAtt ExecuteS3InitRKE.public

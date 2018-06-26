@@ -236,8 +236,14 @@ Resources:
 
                         #Upload Instance RSA Key to S3
                         s3 = boto3.resource('s3')
-                        s3.meta.client.upload_file('/tmp/rsa.pem', rkeS3Bucket, 'rsa.pem')
-                        s3.meta.client.upload_file('/tmp/private.pem', rkeS3Bucket, 'private.pem')
+                        s3.meta.client.upload_file('/tmp/rsa.pem', bucket, 'rsa.pem')
+                        s3.meta.client.upload_file('/tmp/private.pem', bucket, 'private.pem')
+
+                        #Read RSA into memory
+                        with open("/tmp/private.pem", "rb") as private:
+                            responseData['private'] = private.read().decode("utf-8")
+                        
+                        print(responseData['private'])
 
                         responseData['status'] = "success"
                         try:
@@ -475,6 +481,7 @@ Resources:
             HealthCheckIntervalSeconds: 60
             HealthCheckPath: /healthz
             HealthCheckProtocol: HTTP
+            HealthCheckPort: 80
             HealthCheckTimeoutSeconds: 30
             TargetGroupAttributes:
                 - Key: deregistration_delay.timeout_seconds

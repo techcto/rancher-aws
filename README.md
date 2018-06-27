@@ -1,5 +1,5 @@
 ﻿# Rancher HA on AWS
-This project is under active development and is continually being approved. If you find any bugs or issues, please email help@solodev.com.
+This project is under active development and is continually being improved. If you find any bugs or issues, please email help@solodev.com.
  
  ## Steps to Run
 To launch the entire stack and deploy on AWS, click on one of the ***Launch Stack*** links below or download the Master template and launch it locally.

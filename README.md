@@ -1,7 +1,16 @@
 ﻿# Rancher HA on AWS
 This project is under active development and is continually being improved. If you find any bugs or issues, please email help@solodev.com.
- 
- ## Steps to Run
+
+## Overview
+
+## Prerequisites
+The following is a list of prerequisites need to launch a stack. Please note that each of the following must be configured within the region you intend to launch the stack. If the following items are already created, you can skip to deploying.
+
+* [VPC](https://s3.amazonaws.com/techcto-datacenter/aws/corp-vpc.yaml)
+* [EC2 Key Pair](https://console.aws.amazon.com/ec2/v2/home?#KeyPairs:sort=keyName)
+* [SSL/TLS Certificates](https://console.aws.amazon.com/acm/home?#/privatewizard/)
+
+## Steps to Run
 To launch the entire stack and deploy on AWS, click on one of the ***Launch Stack*** links below or download the Master template and launch it locally.
 
 You can launch this CloudFormation stack, using your account, in the following AWS Regions:
@@ -16,3 +25,7 @@ You can launch this CloudFormation stack, using your account, in the following A
 | eu-west-2 |EU (London)| [![cloudformation-launch-stack](images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-2#/stacks/new?stackName=rancher&templateURL=https://s3.amazonaws.com/techcto-datacenter/aws/rancher-ha-cluster.yaml) |
 | eu-central-1 |EU (Frankfurt)| [![cloudformation-launch-stack](images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/new?stackName=rancher&templateURL=https://s3.amazonaws.com/techcto-datacenter/aws/rancher-ha-cluster.yaml) |
 | ca-central-1 |Canada (Central)| [![cloudformation-launch-stack](images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=ca-central-1#/stacks/new?stackName=rancher&templateURL=https://s3.amazonaws.com/techcto-datacenter/aws/rancher-ha-cluster.yaml) |
+
+## Parameters
+
+## FAQs

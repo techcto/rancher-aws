@@ -55,7 +55,7 @@ Resources:
     EC2:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/rancher2.yaml
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/rancher.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: !Ref InstanceType
@@ -71,7 +71,7 @@ Resources:
     RKE:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/lambda/configure-rancher2.yaml
+            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/lambda/configure-rancher.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 AutoScalingGroup: !GetAtt EC2.Outputs.AutoScalingGroup

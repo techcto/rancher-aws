@@ -272,6 +272,8 @@ Resources:
             MinSize: !Ref MinClusterSize
             MaxSize: !Ref MaxClusterSize
             DesiredCapacity: !Ref ClusterSize
+            TargetGroupARNs:
+                - !Ref TargetGroup
             Tags:
                 - Key: Name
                   Value: !Join 

@@ -38,6 +38,12 @@ Click "Next" to proceed to specifying the necessary stack parameters.
 
 | Parameter | Description |
 | --- | --- |
-| item | item |
+| CertificateArn | (Prerequisite) The SSL certificate for AWS ALB HTTPS listener. [Create your certificate](https://console.aws.amazon.com/acm/home?#/privatewizard/) beforehand if you have not done so. |
+| FQDN | The fully qualified URL for using the app. DNS of FQDN must be pointed to the CNAME of ALB. |
+| InstanceType | The EC2 instance type you would be to use. |
+| InstanceUser | A random user that is generated automatically so that you don't have to specify your main ec2-user and master key. A key is created just for use with the stack. |
+| KeyName | (Prerequisite) The name of an existing EC@ KeyPair to enable SSH access to the instances. [Create a KeyPair](https://console.aws.amazon.com/ec2/v2/home?#KeyPairs:sort=keyName) beforehand if you have not done so.|
+| Subnets | Choose which subnets this ECS cluster should be deployed to.|
+| VPC | (Prerequisite) Choose which VPC the Application Load Balancer should be deployed to. Create the VPC beforehand using [this configuration](https://s3.amazonaws.com/techcto-datacenter/aws/corp-vpc.yaml) if you have not done so. |
 
 ## FAQs

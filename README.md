@@ -34,4 +34,10 @@ Click "Next" to proceed to specifying the necessary stack parameters.
 
 ## Parameters
 
+![Create a New Stack Configuration](images/stack-parameters.jpg)
+
+| Parameter | Description |
+| --- | --- |
+| item | item |
+
 ## FAQs

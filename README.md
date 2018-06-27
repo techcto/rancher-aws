@@ -30,6 +30,8 @@ This will open the Create a New Stack configuration with the template preconfigu
 
 ![Create a New Stack Configuration](images/stack-template.jpg)
 
+Click "Next" to proceed to specifying the necessary stack parameters.
+
 ## Parameters
 
 ## FAQs

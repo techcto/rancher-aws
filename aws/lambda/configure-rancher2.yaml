@@ -35,17 +35,6 @@ Parameters:
     
 Resources:
 
-  NotificationTopic:
-    Type: 'AWS::SNS::Topic'
-    Properties:
-      Subscription:
-        - 
-          Endpoint: !GetAtt 
-            - LifecycleExecuteRKE
-            - Arn
-          Protocol: lambda
-    DependsOn: LifecycleExecuteRKE
-
   InstanceTerminatingHook:
     Type: 'AWS::AutoScaling::LifecycleHook'
     Properties:
@@ -118,3 +107,14 @@ Resources:
     Properties:
       ServiceToken: !GetAtt LifecycleExecuteRKE.Arn
       Region: !Ref 'AWS::Region'
+
+  NotificationTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      Subscription:
+        - 
+          Endpoint: !GetAtt 
+            - LifecycleExecuteRKE
+            - Arn
+          Protocol: lambda
+    DependsOn: ExecuteLifecycleExecuteRKE

@@ -115,21 +115,21 @@ Mappings:
 
     AWSRegionToAMI:
         us-east-1:
-            AMI: ami-97785bed
+            AMI: ami-b70554c8
         us-east-2:
-            AMI: ami-f63b1193
+            AMI: ami-8c122be9
         us-west-1:
-            AMI: ami-824c4ee2
+            AMI: ami-e0ba5c83
         us-west-2:
-            AMI: ami-f2d3638a
+            AMI: ami-a9d09ed1
         eu-west-1:
-            AMI: ami-d834aba1
+            AMI: ami-466768ac
         eu-west-2:
-            AMI: ami-403e2524
+            AMI: ami-b8b45ddf
         eu-central-1:
-            AMI: ami-5652ce39
+            AMI: ami-7c4f7097
         ca-central-1:
-            AMI: ami-a954d1cd
+            AMI: ami-0ee86a6a
         # ap-northeast-1:
         #     AMI: ami-c393d6a4
         # ap-southeast-1:
@@ -343,7 +343,6 @@ Resources:
                     yum update -y
                     mount --make-shared /
                     adduser rke-user
-                    usermod -a -G docker rke-user
                     usermod -a -G wheel rke-user
                     cd /home/rke-user
                     mkdir .ssh

@@ -111,32 +111,31 @@ Parameters:
 
 Mappings:
     #We use default AWS Amazon AMI and install docker.
-    #Rancher OS Amis: https://github.com/rancher/os/blob/master/README.md
     #Amazon AMI: https://aws.amazon.com/amazon-linux-ami/
 
     AWSRegionToAMI:
         us-east-1:
-            AMI: ami-428aa838
-        # us-east-2:
-        #     AMI: ami-f63b1193
-        # us-west-1:
-        #     AMI: ami-c4b3bca4
-        # us-west-2:
-        #     AMI: ami-6e1a9e16
-        # eu-west-1:
-        #     AMI: ami-a7f2acc1
-        # eu-west-2:
-        #     AMI: ami-3fb6bc5b
-        # eu-central-1:
-        #     AMI: ami-ec2be583
+            AMI: ami-97785bed
+        us-east-2:
+            AMI: ami-f63b1193
+        us-west-1:
+            AMI: ami-824c4ee2
+        us-west-2:
+            AMI: ami-f2d3638a
+        eu-west-1:
+            AMI: ami-d834aba1
+        eu-west-2:
+            AMI: ami-403e2524
+        eu-central-1:
+            AMI: ami-5652ce39
+        ca-central-1:
+            AMI: ami-a954d1cd
         # ap-northeast-1:
         #     AMI: ami-c393d6a4
         # ap-southeast-1:
         #     AMI: ami-a88530cb
         # ap-southeast-2:
         #     AMI: ami-8af8ffe9
-        # ca-central-1:
-        #     AMI: ami-ead5688e
 
 Resources:
 

@@ -26,6 +26,10 @@ You can launch this CloudFormation stack, using your account, in the following A
 | eu-central-1 |EU (Frankfurt)| [![cloudformation-launch-stack](images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/new?stackName=rancher&templateURL=https://s3.amazonaws.com/techcto-datacenter/aws/rancher-ha-cluster.yaml) |
 | ca-central-1 |Canada (Central)| [![cloudformation-launch-stack](images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=ca-central-1#/stacks/new?stackName=rancher&templateURL=https://s3.amazonaws.com/techcto-datacenter/aws/rancher-ha-cluster.yaml) |
 
+This will open the Create a New Stack configuration with the template preconfigured:
+
+![images/stack-template.jpg]
+
 ## Parameters
 
 ## FAQs

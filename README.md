@@ -28,7 +28,7 @@ You can launch this CloudFormation stack, using your account, in the following A
 
 This will open the Create a New Stack configuration with the template preconfigured:
 
-![images/stack-template.jpg]
+![Create a New Stack Configuration](images/stack-template.jpg)
 
 ## Parameters
 

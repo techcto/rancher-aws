@@ -161,6 +161,7 @@ Resources:
                     - Effect: Allow
                       Action:
                         - 'autoscaling:CompleteLifecycleAction'
+                        - 'autoscaling:DescribeAutoScalingInstances'
                         - 'logs:CreateLogGroup'
                         - 'logs:CreateLogStream'
                         - 'logs:PutLogEvents'
@@ -485,7 +486,7 @@ Resources:
             HealthCheckTimeoutSeconds: 30
             TargetGroupAttributes:
                 - Key: deregistration_delay.timeout_seconds
-                  Value: '700'
+                  Value: '60'
                 - Key: stickiness.type
                   Value: lb_cookie
                 - Key: stickiness.enabled

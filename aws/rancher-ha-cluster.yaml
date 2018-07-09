@@ -36,11 +36,6 @@ Parameters:
         r3.8xlarge, i2.xlarge, i2.2xlarge, i2.4xlarge, i2.8xlarge]
         ConstraintDescription: Please choose a valid instance type.
 
-    InstanceUser:
-        Type: String
-        Default: 'rke-user'
-        Description: Name of admin user for instance (rke-user for example)
-
 Resources:
 
     ALB:
@@ -76,7 +71,7 @@ Resources:
                 EnvironmentName: !Ref AWS::StackName
                 AutoScalingGroup: !GetAtt EC2.Outputs.AutoScalingGroup
                 KeyName: !Ref KeyName
-                InstanceUser: !Ref InstanceUser
+                InstanceUser: 'rke-user'
                 FQDN: !Ref FQDN
                 rkeS3Bucket: !GetAtt EC2.Outputs.rkeS3Bucket
                 LambdaExecutionRole: !GetAtt EC2.Outputs.LambdaExecutionRole

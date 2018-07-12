@@ -1,6 +1,6 @@
 Description: >
 
-    This template deploys a HA Rancher 2 Cluster
+    This template deploys Rancher HA Cluster on AWS
 
 Parameters:
 
@@ -17,7 +17,7 @@ Parameters:
         Description: Choose which subnets this ECS cluster should be deployed to
         Type: List<AWS::EC2::Subnet::Id>
 
-    FQDN:
+    FQDN: 
         Type: String
         Description: Fully qualified URL for using app.  DNS of FQDN must be pointed to CNAME of ALB.
 
@@ -41,7 +41,7 @@ Resources:
     ALB:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/alb.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/infrastructure/alb.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !Ref VPC
@@ -50,7 +50,7 @@ Resources:
     EC2:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/rancher.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/services/rancher.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: !Ref InstanceType
@@ -66,7 +66,7 @@ Resources:
     RKE:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/lambda/configure-rancher.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/lambda/configure-rancher.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 AutoScalingGroup: !GetAtt EC2.Outputs.AutoScalingGroup

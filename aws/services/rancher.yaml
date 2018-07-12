@@ -341,10 +341,11 @@ Resources:
                 "Fn::Base64": !Sub |
                     #!/bin/bash
                     yum install -y aws-cfn-bootstrap
-                    yum update -y
                     mount --make-shared /
                     adduser rke-user
                     usermod -a -G wheel rke-user
+                    mkdir -p /opt/rke/etcd-snapshots
+                    chown rke-user.rke-user /opt/rke/etcd-snapshots
                     cd /home/rke-user
                     mkdir .ssh
                     chmod 700 .ssh
@@ -358,30 +359,12 @@ Resources:
                     rm -f /tmp/private.pem
                     /opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
-                    mkdir -p /opt/rke/etcd-snapshots
-                    chown rke-user.rke-user /opt/rke/etcd-snapshots
 
         Metadata:
             AWS::CloudFormation::Init:
                 configSets:
                     standard:
                     - "standard"
-                    # - "etcd"
-                # efs:
-                #     packages:
-                #         yum:
-                #             nfs-utils: []
-                #     commands:
-                #         02_createdir:
-                #             command: !Sub mkdir -p ${MountPoint}
-                #         03_mount:
-                #             command: !Sub mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ ${MountPoint}
-                #         04_permissions:
-                #             command: !Sub chown ec2-user:ec2-user ${MountPoint}
-                # etcd:
-                #     commands:
-                #         install_etcd:
-                #             command: !Sub docker run -itd --name=etcd --restart=always --expose=2379 -v /etc/sysconfig/:/etc/sysconfig/ monsantoco/etcd-aws-cluster
                 standard:
                     files:
                         "/etc/cfn/cfn-hup.conf":

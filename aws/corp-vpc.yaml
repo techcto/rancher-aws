@@ -16,7 +16,7 @@ Resources:
     VPC:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/vpc.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/infrastructure/vpc.yaml
             Parameters:
                 EnvironmentName:    !Ref AWS::StackName
                 AvailabilityZone:   !Join [ ",", !Ref AvailabilityZone]

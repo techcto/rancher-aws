@@ -201,8 +201,8 @@ Resources:
             Environment:
                 Variables:
                     rkeS3Bucket:  !Ref rkeS3Bucket
-                    S3initRKE: 'https://s3.amazonaws.com/techcto-datacenter/rke/S3initRKE.zip'
-                    lambdaZip: 'S3initRKE.zip'
+                    S3initRKE: 'https://s3.amazonaws.com/rancher-aws/rke/rke-runer.zip'
+                    lambdaZip: 'rke-runer.zip'
             Code:
                 ZipFile: !Join 
                 - ''

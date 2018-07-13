@@ -25,7 +25,7 @@ Parameters:
       Type: String
       Description: Fully qualified URL for using app.  DNS of FQDN must be pointed to CNAME of ALB.
 
-    rkeS3Bucket:
+    RancherBucket:
       Type: String
       Description: A reference to the S3 bucket for rke
 
@@ -92,13 +92,13 @@ Resources:
           CLUSTER: !Ref AutoScalingGroup
           KeyName: !Ref KeyName
           InstanceUser: !Ref InstanceUser
-          rkeS3Bucket:  !Ref rkeS3Bucket
+          RancherBucket:  !Ref RancherBucket
           FQDN: !Ref FQDN
       Handler: rke.run
       Role: !Ref LambdaExecutionRole
       Code: 
-        S3Bucket: !Ref rkeS3Bucket
-        S3Key: 'S3initRKE.zip'
+        S3Bucket: !Ref RancherBucket
+        S3Key: 'rke-runner.zip'
       Runtime: python3.6
       Timeout: 300
 

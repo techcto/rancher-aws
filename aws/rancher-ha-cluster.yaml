@@ -73,7 +73,7 @@ Resources:
                 KeyName: !Ref KeyName
                 InstanceUser: 'rke-user'
                 FQDN: !Ref FQDN
-                rkeS3Bucket: !GetAtt EC2.Outputs.rkeS3Bucket
+                RancherBucket: !GetAtt EC2.Outputs.RancherBucket
                 LambdaExecutionRole: !GetAtt EC2.Outputs.LambdaExecutionRole
 
 Outputs:

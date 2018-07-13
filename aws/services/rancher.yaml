@@ -139,7 +139,7 @@ Mappings:
 
 Resources:
 
-    rkeS3Bucket:
+    RancherBucket:
         Type: AWS::S3::Bucket
         Properties:
             BucketName: !Join ['-', [!Ref 'EnvironmentName', 'rke']]
@@ -182,7 +182,7 @@ Resources:
                     - Effect: Allow
                       Action:
                         - 's3:*'
-                      Resource: !Join ['', ['arn:aws:s3:::', !Ref 'rkeS3Bucket', /*]]
+                      Resource: !Join ['', ['arn:aws:s3:::', !Ref 'rancherBucket', /*]]
             AssumeRolePolicyDocument:
                 Version: 2012-10-17
                 Statement:
@@ -195,13 +195,13 @@ Resources:
             ManagedPolicyArns:
                 - 'arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole'
 
-    S3InitRKE:
+    InitRkeRunner:
         Type: 'AWS::Lambda::Function'
         Properties:
             Environment:
                 Variables:
-                    rkeS3Bucket:  !Ref rkeS3Bucket
-                    S3initRKE: 'https://s3.amazonaws.com/rancher-aws/rke/rke-runer.zip'
+                    rancherBucket:  !Ref RancherBucket
+                    rkeRunner: 'https://s3.amazonaws.com/rancher-aws/rke-runer.zip'
                     lambdaZip: 'rke-runer.zip'
             Code:
                 ZipFile: !Join 
@@ -218,8 +218,8 @@ Resources:
                         subprocess.check_call(cmdline)
 
                     def handler(event, context):
-                        url = os.environ['S3initRKE']
-                        bucket = os.environ['rkeS3Bucket']
+                        url = os.environ['rkeRunner']
+                        bucket = os.environ['rancherBucket']
                         key = os.environ['lambdaZip']
                         responseData = {}
 
@@ -257,15 +257,15 @@ Resources:
             Runtime: python3.6
             Timeout: 30
 
-    ExecuteS3InitRKE:
-        Type: 'Custom::ExecuteS3InitRKE'
+    ExecuteRkeRunner:
+        Type: 'Custom::ExecuteRkeRunner'
         Properties:
-            ServiceToken: !GetAtt S3InitRKE.Arn
+            ServiceToken: !GetAtt InitRkeRunner.Arn
             Region: !Ref 'AWS::Region'
 
     EC2AutoScalingGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
-        DependsOn: "ExecuteS3InitRKE"
+        DependsOn: "ExecuteRkeRunner"
         Properties: 
             VPCZoneIdentifier: !Ref Subnets
             LaunchConfigurationName: !Ref EC2LaunchConfiguration
@@ -349,8 +349,8 @@ Resources:
                     cd /home/rke-user
                     mkdir .ssh
                     chmod 700 .ssh
-                    echo "${ExecuteS3InitRKE.private}"
-                    echo "${ExecuteS3InitRKE.private}" > /tmp/private.pem
+                    echo "${ExecuteRkeRunner.private}"
+                    echo "${ExecuteRkeRunner.private}" > /tmp/private.pem
                     chmod 600 /tmp/private.pem
                     echo "Convert SSL key file to SSH"
                     (ssh-keygen -y -P "x" -f /tmp/private.pem | sed -n '1p' | sed '$s/$/ rke-user/') > .ssh/authorized_keys
@@ -538,9 +538,9 @@ Outputs:
         Description: A reference to the EC2HostSecurityGroup
         Value: !Ref EC2HostSecurityGroup
 
-    rkeS3Bucket:
+    RancherBucket:
         Description: A reference to the S3 bucket for rke
-        Value: !Ref rkeS3Bucket
+        Value: !Ref RancherBucket
 
     LambdaExecutionRole:
         Description: A reference to the lambda execution role

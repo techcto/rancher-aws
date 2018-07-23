@@ -169,20 +169,13 @@ Resources:
                         - 'ec2:DescribeInstanceAttribute'
                         - 'ec2:DescribeInstanceStatus'
                         - 'ec2:DescribeHosts'
-                        - 'ecs:ListContainerInstances'
-                        - 'ecs:SubmitContainerStateChange'
-                        - 'ecs:SubmitTaskStateChange'
-                        - 'ecs:DescribeContainerInstances'
-                        - 'ecs:UpdateContainerInstancesState'
-                        - 'ecs:ListTasks'
-                        - 'ecs:DescribeTasks'
                         - 'sns:Publish'
                         - 'sns:ListSubscriptions'
                       Resource: '*'
                     - Effect: Allow
                       Action:
                         - 's3:*'
-                      Resource: !Join ['', ['arn:aws:s3:::', !Ref 'rancherBucket', /*]]
+                      Resource: !Join ['', ['arn:aws:s3:::', !Ref 'RancherBucket', /*]]
             AssumeRolePolicyDocument:
                 Version: 2012-10-17
                 Statement:
@@ -201,8 +194,8 @@ Resources:
             Environment:
                 Variables:
                     rancherBucket:  !Ref RancherBucket
-                    rkeRunner: 'https://s3.amazonaws.com/rancher-aws/rke-runer.zip'
-                    lambdaZip: 'rke-runer.zip'
+                    rkeRunner: 'https://s3.amazonaws.com/rancher-aws/rke/rke-runner.zip'
+                    lambdaZip: 'rke-runner.zip'
             Code:
                 ZipFile: !Join 
                 - ''
@@ -333,30 +326,11 @@ Resources:
               Ebs:
                 VolumeSize: !Ref HostVolumeSize
                 DeleteOnTermination: 'true'
-            # - DeviceName: /dev/xvdb
-            #   Ebs:
-            #     VolumeSize: !Ref BlockVolumeSize
-            #     DeleteOnTermination: 'true'
             UserData: 
                 "Fn::Base64": !Sub |
                     #!/bin/bash
                     yum install -y aws-cfn-bootstrap
                     mount --make-shared /
-                    adduser rke-user
-                    usermod -a -G wheel rke-user
-                    mkdir -p /opt/rke/etcd-snapshots
-                    chown rke-user.rke-user /opt/rke/etcd-snapshots
-                    cd /home/rke-user
-                    mkdir .ssh
-                    chmod 700 .ssh
-                    echo "${ExecuteRkeRunner.private}"
-                    echo "${ExecuteRkeRunner.private}" > /tmp/private.pem
-                    chmod 600 /tmp/private.pem
-                    echo "Convert SSL key file to SSH"
-                    (ssh-keygen -y -P "x" -f /tmp/private.pem | sed -n '1p' | sed '$s/$/ rke-user/') > .ssh/authorized_keys
-                    chmod 600 .ssh/authorized_keys
-                    chown -Rf rke-user.rke-user .ssh
-                    rm -f /tmp/private.pem
                     /opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
 
@@ -391,24 +365,40 @@ Resources:
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
                     commands:
-                        1_install_docker:
-                            command: !Sub sudo yum -y install docker
-                        2_change_cluster_storage_driver:
-                            command: !Sub echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
-                        3_space_sshd_config:
-                            command: !Sub echo '' >> /etc/ssh/sshd_config
-                        4_edit_sshd_config:
-                            command: !Sub echo 'AllowTcpForwarding yes' >> /etc/ssh/sshd_config
-                        5_edit_sshd_config2:
-                            command: !Sub echo 'PermitTunnel yes' >> /etc/ssh/sshd_config
-                        6_add_user_to_docker:
-                            command: !Sub usermod -a -G docker rke-user
-                        7_update_docker_service:
-                            command: !Sub echo "MountFlags=shared" >> /usr/lib/systemd/system/docker.service
-                        8_start_docker:
-                            command: !Sub service docker start
-                        9_restart_sshd:
-                            command: !Sub service sshd restart
+                        1-prep-sshd-docker:
+                            command: !Sub |
+                                echo '' >> /etc/ssh/sshd_config
+                                echo 'AllowTcpForwarding yes' >> /etc/ssh/sshd_config
+                                echo 'PermitTunnel yes' >> /etc/ssh/sshd_config
+                                service sshd restart
+                        2-install-docker:
+                            command: !Sub |
+                                sudo yum -y install docker
+                                echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
+                                echo "MountFlags=shared" >> /usr/lib/systemd/system/docker.service
+                                chkconfig docker on
+                                service docker start
+                        3-add-rke-user:
+                            command: !Sub |
+                                adduser rke-user
+                                usermod -a -G wheel rke-user
+                        4-add-rke-user-keys:
+                            command: !Sub |
+                                cd /home/rke-user
+                                mkdir .ssh
+                                chmod 700 .ssh
+                                echo "${ExecuteRkeRunner.private}"
+                                echo "${ExecuteRkeRunner.private}" > /tmp/private.pem
+                                chmod 600 /tmp/private.pem
+                                echo "Convert SSL key file to SSH"
+                                (ssh-keygen -y -P "x" -f /tmp/private.pem | sed -n '1p' | sed '$s/$/ rke-user/') > .ssh/authorized_keys
+                                chmod 600 .ssh/authorized_keys
+                                chown -Rf rke-user.rke-user .ssh
+                                rm -f /tmp/private.pem
+                        5-rke-etcd-snapshots:
+                            command: !Sub |
+                                mkdir -p /opt/rke/etcd-snapshots
+                                chown rke-user.rke-user /opt/rke/etcd-snapshots
     EC2Role:
         Type: AWS::IAM::Role
         Properties: 
@@ -434,10 +424,6 @@ Resources:
                                 "autoscaling:Describe*",
                                 "logs:CreateLogStream",
                                 "logs:PutLogEvents",
-                                "ecr:BatchCheckLayerAvailability",
-                                "ecr:BatchGetImage",
-                                "ecr:GetDownloadUrlForLayer",
-                                "ecr:GetAuthorizationToken",
                                 "ec2:Describe*",
                                 "ec2:AttachVolume",
                                 "ec2:DetachVolume",

@@ -89,7 +89,7 @@ Resources:
     Properties:
       Environment:
         Variables:
-          CLUSTER: !Ref AutoScalingGroup
+          Cluster: !Ref AutoScalingGroup
           KeyName: !Ref KeyName
           InstanceUser: !Ref InstanceUser
           RancherBucket:  !Ref RancherBucket

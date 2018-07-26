@@ -29,7 +29,7 @@ Parameters:
         ConstraintDescription: Please choose a valid instance type.
 
     DbPassword:
-        Default: password
+        Default: rancherpass
         NoEcho: 'true'
         Description: The Rancher admin account password
         Type: String

@@ -330,7 +330,6 @@ Resources:
                 "Fn::Base64": !Sub |
                     #!/bin/bash
                     yum install -y aws-cfn-bootstrap
-                    mount --make-shared /
                     /opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
 
@@ -373,7 +372,8 @@ Resources:
                                 service sshd restart
                         2-install-docker:
                             command: !Sub |
-                                sudo yum -y install docker
+                                yum -y install docker
+                                mount --make-shared /
                                 echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
                                 echo "MountFlags=shared" >> /usr/lib/systemd/system/docker.service
                                 chkconfig docker on
@@ -381,7 +381,7 @@ Resources:
                         3-add-rke-user:
                             command: !Sub |
                                 adduser rke-user
-                                usermod -a -G wheel rke-user
+                                usermod -a -G wheel,docker rke-user
                         4-add-rke-user-keys:
                             command: !Sub |
                                 cd /home/rke-user

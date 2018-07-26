@@ -47,7 +47,7 @@ Resources:
     EC2:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/services/rancher1.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/archive/services/rancher1.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: !Ref InstanceType

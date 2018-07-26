@@ -1,6 +1,5 @@
 Description: >
-    This is an example of a long running ECS service that needs to connect to another ECS service (product-service)
-    via it's load balancer. We use environment variables to pass the URL of the product-service to this one's container(s).
+    Lambda script to configure rancher 1 cluster
 
 Parameters: 
 
@@ -94,7 +93,7 @@ Resources:
             ContainerDefinitions:
                 - Name: rancher-hub
                   Essential: true
-                  Image: techcto/docker-rancher:latest
+                  Image: rancher/server:latest
                   Memory: 750
                   EntryPoint:
                     - /usr/bin/entry

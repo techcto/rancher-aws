@@ -1,6 +1,6 @@
 Description: >
 
-    This template deploys a AWS ECS Cluster, with a EFS filesystem mounted to /efs and a default ALB load balancer
+    This template deploys a AWS ECS Cluster Rancher 1 HA Environment, with a EFS filesystem mounted to /efs and a default ALB load balancer
 
 Parameters:
 
@@ -38,7 +38,7 @@ Resources:
     ALB:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/alb.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/infrastructure/alb.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !Ref VPC
@@ -47,7 +47,7 @@ Resources:
     EC2:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/ec2-rancher.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/services/rancher1.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: !Ref InstanceType

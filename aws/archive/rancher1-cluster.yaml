@@ -1,6 +1,6 @@
 Description: >
 
-    This template deploys a Rancher Cluster (HUB) to manage containers on AWS Docker Hosts and a RDS database
+    This template deploys a AutoScaling EC2 Rancher 1 HA Cluster and a RDS database
 
 Parameters:
 
@@ -43,7 +43,7 @@ Resources:
     ALB:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/alb.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/infrastructure/alb.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !Ref VPC
@@ -52,7 +52,7 @@ Resources:
     ECS:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/ecs.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/archive/infrastructure/ecs.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: !Ref InstanceType
@@ -65,7 +65,7 @@ Resources:
     RDS:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/infrastructure/rds.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/archive/infrastructure/rds.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !Ref VPC
@@ -75,7 +75,7 @@ Resources:
     RancherService:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/techcto-datacenter/aws/services/configure-rancher1.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/archive/services/configure-rancher1.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 VPC: !Ref VPC

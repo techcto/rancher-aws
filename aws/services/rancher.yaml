@@ -330,6 +330,7 @@ Resources:
                 "Fn::Base64": !Sub |
                     #!/bin/bash
                     yum install -y aws-cfn-bootstrap
+                    mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig
                     /opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
                     /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2AutoScalingGroup
 
@@ -355,6 +356,25 @@ Resources:
                                 triggers=post.update
                                 path=Resources.EC2LaunchConfiguration.Metadata.AWS::CloudFormation::Init
                                 action=/opt/aws/bin/cfn-init -v -c standard --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
+                        "/etc/dnsmasq.conf":
+                            content: !Sub |
+                                # Server Configuration
+                                listen-address=127.0.0.1
+                                port=53
+                                bind-interfaces
+                                user=dnsmasq
+                                group=dnsmasq
+                                pid-file=/var/run/dnsmasq.pid
+
+                                # Name resolution options
+                                resolv-file=/etc/resolv.dnsmasq
+                                cache-size=500
+                                neg-ttl=60
+                                domain-needed
+                                bogus-priv
+                        "/etc/resolv.dnsmasq":
+                            content: !Sub |
+                                nameserver 10.0.0.2
                     services: 
                         sysvinit:
                             cfn-hup: 
@@ -399,6 +419,15 @@ Resources:
                             command: !Sub |
                                 mkdir -p /opt/rke/etcd-snapshots
                                 chown rke-user.rke-user /opt/rke/etcd-snapshots
+                        6-aws-dnsmasq:
+                            command: !Sub |
+                                yum install -y dnsmasq
+                                groupadd -r dnsmasq
+                                useradd -r -g dnsmasq dnsmasq
+                                chkconfig dnsmasq on
+                                service dnsmasq start
+                                echo "supersede domain-name-servers 127.0.0.1, 10.0.0.2, 8.8.8.8;" >> /etc/dhcp/dhclient.conf
+                                dhclient
     EC2Role:
         Type: AWS::IAM::Role
         Properties: 

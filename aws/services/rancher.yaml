@@ -386,6 +386,7 @@ Resources:
                     commands:
                         1-prep-sshd-docker:
                             command: !Sub |
+                                mkdir -p /etc/kubernetes/.tmp
                                 echo '' >> /etc/ssh/sshd_config
                                 echo 'AllowTcpForwarding yes' >> /etc/ssh/sshd_config
                                 echo 'PermitTunnel yes' >> /etc/ssh/sshd_config

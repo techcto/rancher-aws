@@ -92,9 +92,10 @@ Resources:
           Cluster: !Ref AutoScalingGroup
           KeyName: !Ref KeyName
           InstanceUser: !Ref InstanceUser
-          RancherBucket:  !Ref RancherBucket
+          Bucket:  !Ref RancherBucket
+          Clean: False
           FQDN: !Ref FQDN
-      Handler: rke.run
+      Handler: app.run
       Role: !Ref LambdaExecutionRole
       Code: 
         S3Bucket: !Ref RancherBucket

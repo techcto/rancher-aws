@@ -79,8 +79,8 @@ Resources:
         Subnets: [!Ref Subnets]
         SecurityGroupIds: [!Ref LoadBalancerSecurityGroup]
       Source:
-        Location: !Ref RancherBucket
-        Type: S3
+        Location: 'https://github.com/techcto/rke-runner'
+        Type: GITHUB
 
   CodeBuildRole:
     Type: AWS::IAM::Role

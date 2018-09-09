@@ -193,9 +193,7 @@ Resources:
         Properties:
             Environment:
                 Variables:
-                    rkeRunner: 'https://s3.amazonaws.com/rancher-aws/rke/rke-runner.zip'
                     rancherBucket:  !Ref RancherBucket
-                    lambdaZip: 'rke-runner.zip'
             Code:
                 ZipFile: !Join 
                 - ''
@@ -211,15 +209,8 @@ Resources:
                         subprocess.check_call(cmdline)
 
                     def handler(event, context):
-                        url = os.environ['rkeRunner']
                         bucket = os.environ['rancherBucket']
-                        key = os.environ['lambdaZip']
                         responseData = {}
-
-                        #Upload RKE Lambda
-                        s3 = boto3.client('s3', config=Config(signature_version='s3v4'))
-                        http = urllib3.PoolManager()
-                        s3.upload_fileobj(http.request('GET', url, preload_content=False), bucket, key)
 
                         #Generate Key Pair for rke-user
                         os.environ['HOME'] = '/tmp'

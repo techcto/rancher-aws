@@ -40,12 +40,16 @@ Parameters:
     Default: ''
     Description: A reference to the Status
 
+  CodeBuildProjectName:
+    Type: String
+    Description: Name of codebuild project used for running rke
+
 Resources:
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Join ['-', [!Ref 'EnvironmentName', 'codebuild']]
+      Name: !Ref CodeBuildProjectName
       ServiceRole: !Ref CodeBuildRole
       Artifacts:
         Type: no_artifacts
@@ -106,8 +110,3 @@ Resources:
                 - 'ec2:CreateNetworkInterfacePermission'
                 Effect: Allow
                 Resource: '*'
-
-Outputs:
-    ProjectName:
-        Description: Codebuild project name
-        Value: !GetAtt CodeBuildProject.Name

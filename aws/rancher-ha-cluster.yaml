@@ -81,6 +81,7 @@ Resources:
                 RancherBucket: !GetAtt EC2.Outputs.RancherBucket
                 FQDN: !Ref FQDN
                 InstanceUser: !Ref RKEUser
+                CodeBuildProjectName: !Join ['-', [!Ref 'EnvironmentName', 'codebuild']]
 
     RKE:
         Type: AWS::CloudFormation::Stack
@@ -94,7 +95,7 @@ Resources:
                 FQDN: !Ref FQDN
                 RancherBucket: !GetAtt EC2.Outputs.RancherBucket
                 LambdaExecutionRole: !GetAtt EC2.Outputs.LambdaExecutionRole
-                CodeBuildProjectName: !GetAtt CODEBUILD.Outputs.ProjectName
+                CodeBuildProjectName: !Join ['-', [!Ref 'EnvironmentName', 'codebuild']]
                 Status: ''
 
 Outputs:

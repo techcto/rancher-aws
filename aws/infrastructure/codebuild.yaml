@@ -1,0 +1,113 @@
+Description: >
+    This template deploys a CodeBuild Project to manage Rancher/RKE lifecycle events
+
+Parameters:
+
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+
+  VPC:
+    Type: AWS::EC2::VPC::Id
+    Description: Choose which VPC the Application Load Balancer should be deployed to
+
+  Subnets:
+    Description: Choose which subnets the Application Load Balancer should be deployed to
+    Type: List<AWS::EC2::Subnet::Id>
+
+  LoadBalancerSecurityGroup:
+    Description: Select the Load Balancer Security Group to use for the cluster hosts
+    Type: AWS::EC2::SecurityGroup::Id
+
+  AutoScalingGroup:
+    Description: The AutoScalingGroup that the EC2 cluster is deployed to
+    Type: String
+
+  RancherBucket:
+    Type: String
+    Description: A reference to the S3 bucket for rke
+
+  FQDN:
+    Type: String
+    Description: A reference to the FQDN
+
+  InstanceUser:
+    Type: String
+    Description: A reference to the InstanceUser
+    
+  Status:
+    Type: String
+    Default: ''
+    Description: A reference to the Status
+
+Resources:
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Join ['-', [!Ref 'EnvironmentName', 'codebuild']]
+      ServiceRole: !Ref CodeBuildRole
+      Artifacts:
+        Type: no_artifacts
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: lambci/lambda
+        EnvironmentVariables:
+          - Name: CLUSTER
+            Value: !Ref AutoScalingGroup
+            Type: PLAINTEXT
+          - Name: FQDN
+            Value: !Ref FQDN
+            Type: PLAINTEXT
+          - Name: InstanceUser
+            Value: !Ref InstanceUser
+            Type: PLAINTEXT
+          - Name: Status
+            Value: !Ref Status
+            Type: PLAINTEXT
+          - Name: Bucket
+            Value: !Ref RancherBucket
+            Type: PLAINTEXT
+      TimeoutInMinutes: 10
+      VpcConfig:
+        VpcId: !Ref VPC
+        Subnets: [!Ref Subnets]
+        SecurityGroupIds: [!Ref LoadBalancerSecurityGroup]
+      Source:
+        Location: !Ref RancherBucket
+        Type: S3
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [codebuild.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CodeBuildAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 'logs:*'
+                - 'ec2:CreateNetworkInterface'
+                - 'ec2:DescribeNetworkInterfaces'
+                - 'ec2:DeleteNetworkInterface'
+                - 'ec2:DescribeSubnets'
+                - 'ec2:DescribeSecurityGroups'
+                - 'ec2:DescribeDhcpOptions'
+                - 'ec2:DescribeVpcs'
+                - 'ec2:CreateNetworkInterfacePermission'
+                Effect: Allow
+                Resource: '*'
+
+Outputs:
+    ProjectName:
+        Description: Codebuild project name
+        Value: !GetAtt CodeBuildProject.Name

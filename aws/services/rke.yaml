@@ -18,8 +18,8 @@ Parameters:
 
     InstanceUser:
       Type: String
-      Default: 'ec2-user'
-      Description: Name of admin user for instance (ec2-user for example)
+      Default: 'rke-user'
+      Description: Name of admin user for instance (rke-user for example)
 
     FQDN:
       Type: String
@@ -32,6 +32,10 @@ Parameters:
     LambdaExecutionRole:
       Type: String
       Description: A reference to the lambda execution role
+
+    CodeBuildProjectName:
+      Type: String
+      Description: Name of codebuild project used for running rke
     
 Resources:
 
@@ -89,19 +93,79 @@ Resources:
     Properties:
       Environment:
         Variables:
+          ProjectName: !Ref CodeBuildProjectName
           Cluster: !Ref AutoScalingGroup
           KeyName: !Ref KeyName
           InstanceUser: !Ref InstanceUser
           Bucket:  !Ref RancherBucket
           Clean: False
           FQDN: !Ref FQDN
-      Handler: app.run
       Role: !Ref LambdaExecutionRole
-      Code: 
-        S3Bucket: !Ref RancherBucket
-        S3Key: 'rke-runner.zip'
+      Code:
+          ZipFile: !Join 
+          - ''
+          - - |
+              import boto3,os
+
+              def run(event, context):
+                print('Starting a new build ...')
+                print(os.environ)
+                codebuild = boto3.client('codebuild')
+
+                response = codebuild.start_build(
+                  projectName = os.environ['ProjectName'],
+                  environmentVariablesOverride = [
+                    {
+                        'name': 'Cluster',
+                        'value': os.environ['Cluster'],
+                        'type': 'PLAINTEXT
+                    },
+                    {
+                        'name': 'InstanceUser',
+                        'value': os.environ['InstanceUser'],
+                        'type': 'PLAINTEXT
+                    },
+                    {
+                        'name': 'Bucket',
+                        'value': os.environ['Bucket'],
+                        'type': 'PLAINTEXT
+                    },
+                    {
+                        'name': 'Clean',
+                        'value': os.environ['Clean'],
+                        'type': 'PLAINTEXT
+                    },
+                    {
+                        'name': 'FQDN',
+                        'value': os.environ['FQDN'],
+                        'type': 'PLAINTEXT
+                    },
+                  ]
+                )
+
+                print('Successfully launched a new CodeBuild project build!')
+      Handler: index.run
       Runtime: python3.6
-      Timeout: 300
+      Timeout: 30
+
+  # LifecycleExecuteRKE:
+  #   Type: 'AWS::Lambda::Function'
+  #   Properties:
+  #     Environment:
+  #       Variables:
+  #         Cluster: !Ref AutoScalingGroup
+  #         KeyName: !Ref KeyName
+  #         InstanceUser: !Ref InstanceUser
+  #         Bucket:  !Ref RancherBucket
+  #         Clean: False
+  #         FQDN: !Ref FQDN
+  #     Handler: app.run
+  #     Role: !Ref LambdaExecutionRole
+  #     Code: 
+  #       S3Bucket: !Ref RancherBucket
+  #       S3Key: 'rke-runner.zip'
+  #     Runtime: python3.6
+  #     Timeout: 300
 
   ExecuteLifecycleExecuteRKE:
     Type: 'Custom::ExecuteLifecycleExecuteRKE'

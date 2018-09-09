@@ -25,6 +25,11 @@ Parameters:
         Type: String
         Description: SSL cert for AWS ALB HTTPS listener
 
+    RKEUser:
+        Type: String
+        Default: 'rke-user'
+        Description: SSH USer rke will use to manage cluster
+
     InstanceType:
         Description: EC2 instance type
         Type: String
@@ -50,7 +55,7 @@ Resources:
     EC2:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/services/rancher.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/infrastructure/rancher.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 InstanceType: !Ref InstanceType
@@ -63,18 +68,34 @@ Resources:
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
                 Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
 
+    CODEBUILD:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/infrastructure/codebuild.yaml
+            Parameters:
+                EnvironmentName: !Ref AWS::StackName
+                VPC: !Ref VPC
+                AutoScalingGroup: !GetAtt EC2.Outputs.AutoScalingGroup
+                LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
+                Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
+                RancherBucket: !GetAtt EC2.Outputs.RancherBucket
+                FQDN: !Ref FQDN
+                InstanceUser: !Ref RKEUser
+
     RKE:
         Type: AWS::CloudFormation::Stack
         Properties:
-            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/lambda/configure-rancher.yaml
+            TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/services/rke.yaml
             Parameters:
                 EnvironmentName: !Ref AWS::StackName
                 AutoScalingGroup: !GetAtt EC2.Outputs.AutoScalingGroup
                 KeyName: !Ref KeyName
-                InstanceUser: 'rke-user'
+                InstanceUser: !Ref RKEUser
                 FQDN: !Ref FQDN
                 RancherBucket: !GetAtt EC2.Outputs.RancherBucket
                 LambdaExecutionRole: !GetAtt EC2.Outputs.LambdaExecutionRole
+                CodeBuildProjectName: !GetAtt CODEBUILD.Outputs.ProjectName
+                Status: ''
 
 Outputs:
 

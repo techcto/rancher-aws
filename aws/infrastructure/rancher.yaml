@@ -193,8 +193,8 @@ Resources:
         Properties:
             Environment:
                 Variables:
-                    rancherBucket:  !Ref RancherBucket
                     rkeRunner: 'https://s3.amazonaws.com/rancher-aws/rke/rke-runner.zip'
+                    rancherBucket:  !Ref RancherBucket
                     lambdaZip: 'rke-runner.zip'
             Code:
                 ZipFile: !Join 

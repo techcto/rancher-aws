@@ -36,6 +36,11 @@ Parameters:
     CodeBuildProjectName:
       Type: String
       Description: Name of codebuild project used for running rke
+
+    Clean:
+      Type: String
+      Default: ''
+
     
 Resources:
 
@@ -98,7 +103,7 @@ Resources:
           KeyName: !Ref KeyName
           InstanceUser: !Ref InstanceUser
           Bucket:  !Ref RancherBucket
-          Clean: False
+          Clean: !Ref Clean
           FQDN: !Ref FQDN
       Role: !Ref LambdaExecutionRole
       Code:

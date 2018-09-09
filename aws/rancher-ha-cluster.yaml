@@ -96,7 +96,6 @@ Resources:
                 RancherBucket: !GetAtt EC2.Outputs.RancherBucket
                 LambdaExecutionRole: !GetAtt EC2.Outputs.LambdaExecutionRole
                 CodeBuildProjectName: !Join ['-', [!Ref 'AWS::StackName', 'codebuild']]
-                Status: ''
 
 Outputs:
 

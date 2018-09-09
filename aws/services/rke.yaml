@@ -123,28 +123,28 @@ Resources:
                     {
                         'name': 'Cluster',
                         'value': os.environ['Cluster'],
-                        'type': 'PLAINTEXT
+                        'type': 'PLAINTEXT'
                     },
                     {
                         'name': 'InstanceUser',
                         'value': os.environ['InstanceUser'],
-                        'type': 'PLAINTEXT
+                        'type': 'PLAINTEXT'
                     },
                     {
                         'name': 'Bucket',
                         'value': os.environ['Bucket'],
-                        'type': 'PLAINTEXT
+                        'type': 'PLAINTEXT'
                     },
                     {
                         'name': 'Clean',
                         'value': os.environ['Clean'],
-                        'type': 'PLAINTEXT
+                        'type': 'PLAINTEXT'
                     },
                     {
                         'name': 'FQDN',
                         'value': os.environ['FQDN'],
-                        'type': 'PLAINTEXT
-                    },
+                        'type': 'PLAINTEXT'
+                    }
                   ]
                 )
 

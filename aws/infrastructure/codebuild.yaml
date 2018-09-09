@@ -12,8 +12,8 @@ Parameters:
     Description: Choose which VPC the Application Load Balancer should be deployed to
 
   Subnets:
-    Description: Choose which subnets the Application Load Balancer should be deployed to
-    Type: List<AWS::EC2::Subnet::Id>
+    Description: Choose which subnets Codebuild should be deployed to
+    Type: String
 
   LoadBalancerSecurityGroup:
     Description: Select the Load Balancer Security Group to use for the cluster hosts

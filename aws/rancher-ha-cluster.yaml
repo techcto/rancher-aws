@@ -77,7 +77,7 @@ Resources:
                 VPC: !Ref VPC
                 AutoScalingGroup: !GetAtt EC2.Outputs.AutoScalingGroup
                 LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
-                Subnets: !Join [",", [!Select [0, !Ref Subnets], !Select [1, !Ref Subnets]]]
+                Subnets: !Select [0, !Ref Subnets]
                 RancherBucket: !GetAtt EC2.Outputs.RancherBucket
                 FQDN: !Ref FQDN
                 InstanceUser: !Ref RKEUser

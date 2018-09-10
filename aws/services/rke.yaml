@@ -37,9 +37,9 @@ Parameters:
       Type: String
       Description: Name of codebuild project used for running rke
 
-    Clean:
+    Status:
       Type: String
-      Default: ''
+      Default: 'update'
 
     
 Resources:
@@ -103,7 +103,7 @@ Resources:
           KeyName: !Ref KeyName
           InstanceUser: !Ref InstanceUser
           Bucket:  !Ref RancherBucket
-          Clean: !Ref Clean
+          Status: !Ref Status
           FQDN: !Ref FQDN
       Role: !Ref LambdaExecutionRole
       Code:
@@ -117,38 +117,24 @@ Resources:
                 print(os.environ)
                 codebuild = boto3.client('codebuild')
 
-                codebuild.start_build(
-                  projectName = os.environ['ProjectName'],
-                  environmentVariablesOverride = [
-                    {
-                        'name': 'Cluster',
-                        'value': os.environ['Cluster'],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'InstanceUser',
-                        'value': os.environ['InstanceUser'],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'Bucket',
-                        'value': os.environ['Bucket'],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'Clean',
-                        'value': os.environ['Clean'],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'FQDN',
-                        'value': os.environ['FQDN'],
-                        'type': 'PLAINTEXT'
-                    }
-                  ]
-                )
+                # set up our codebuild start_build args
+                start_args = {
+                    'projectName': os.environ['ProjectName'],
+                    'environmentVariablesOverride':[
+                        {'name': 'Cluster', 'value': os.environ['Cluster']},
+                        {'name': 'InstanceUser', 'value': os.environ['InstanceUser']},
+                        {'name': 'Bucket', 'value': os.environ['Bucket']},
+                        {'name': 'FQDN', 'value': os.environ['FQDN']},
+                        {'name': 'Status', 'value': os.environ['Status']}
+                    ]
+                }
 
-                print('Successfully launched a new CodeBuild project build!')
+                response = codebuild.start_build(**start_args)
+                build_id = response['build']['id']
+                logger.info('--Build ID = %s', build_id)
+                
+              # return the build ID
+              return build_id
       Handler: index.run
       Runtime: python3.6
       Timeout: 30

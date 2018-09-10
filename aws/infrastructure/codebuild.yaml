@@ -56,7 +56,7 @@ Resources:
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: lambci/lambda
+        Image: docker.io/amazonlinux:2
         EnvironmentVariables:
           - Name: CLUSTER
             Value: !Ref AutoScalingGroup
@@ -74,10 +74,10 @@ Resources:
             Value: !Ref RancherBucket
             Type: PLAINTEXT
       TimeoutInMinutes: 10
-      VpcConfig:
-        VpcId: !Ref VPC
-        Subnets: [!Ref Subnets]
-        SecurityGroupIds: [!Ref LoadBalancerSecurityGroup]
+      # VpcConfig:
+      #   VpcId: !Ref VPC
+      #   Subnets: [!Ref Subnets]
+      #   SecurityGroupIds: [!Ref LoadBalancerSecurityGroup]
       Source:
         Location: 'https://github.com/techcto/rke-runner'
         Type: GITHUB
@@ -98,9 +98,16 @@ Resources:
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Action:
+              - Effect: Allow
+                Action:
                 - 'logs:*'
+                - 'autoscaling:CompleteLifecycleAction'
+                - 'autoscaling:DescribeAutoScalingInstances'
                 - 'ec2:CreateNetworkInterface'
+                - 'ec2:DescribeInstances'
+                - 'ec2:DescribeInstanceAttribute'
+                - 'ec2:DescribeInstanceStatus'
+                - 'ec2:DescribeHosts'
                 - 'ec2:DescribeNetworkInterfaces'
                 - 'ec2:DeleteNetworkInterface'
                 - 'ec2:DescribeSubnets'
@@ -108,5 +115,10 @@ Resources:
                 - 'ec2:DescribeDhcpOptions'
                 - 'ec2:DescribeVpcs'
                 - 'ec2:CreateNetworkInterfacePermission'
-                Effect: Allow
+                - 'sns:Publish'
+                - 'sns:ListSubscriptions'
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 's3:*'
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref 'RancherBucket', /*]]

@@ -85,6 +85,7 @@ Resources:
 
     RKE:
         Type: AWS::CloudFormation::Stack
+        DependsOn: CODEBUILD
         Properties:
             TemplateURL: https://s3.amazonaws.com/rancher-aws/aws/services/rke.yaml
             Parameters:

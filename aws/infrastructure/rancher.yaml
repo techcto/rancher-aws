@@ -165,6 +165,7 @@ Resources:
                         - 'logs:CreateLogGroup'
                         - 'logs:CreateLogStream'
                         - 'logs:PutLogEvents'
+                        - 'codebuild:StartBuild'
                         - 'ec2:DescribeInstances'
                         - 'ec2:DescribeInstanceAttribute'
                         - 'ec2:DescribeInstanceStatus'

@@ -225,6 +225,7 @@ Resources:
             UserData: 
                 "Fn::Base64": !Sub |
                     #!/bin/bash
+                    yum update -y
                     yum install -y aws-cfn-bootstrap
                     mount --make-shared /
                     /opt/aws/bin/cfn-init -v -c ${EnvType} --region ${AWS::Region} --stack ${AWS::StackName} --resource EC2LaunchConfiguration
@@ -264,13 +265,15 @@ Resources:
                                     - /etc/cfn/cfn-hup.conf
                                     - /etc/cfn/hooks.d/cfn-auto-reloader.conf
                     commands:
-                        change_cluster_storage_driver:
+                        01_install_docker:
+                            command: !Sub yum install -y docker
+                        02_change_cluster_storage_driver:
                             command: !Sub echo 'DOCKER_STORAGE_OPTIONS="--storage-driver overlay2"' > /etc/sysconfig/docker-storage
-                        storage_opt_hack:
+                        03_storage_opt_hack:
                             command: !Sub echo 'OPTIONS="${!OPTIONS} --storage-opt dm.basesize=99999G"' >> /etc/sysconfig/docker
-                        restart_docker:
+                        04_restart_docker:
                             command: !Sub service docker restart
-                        update_ecs:
+                        05_update_ecs:
                             command: !Sub yum update -y ecs-init
                 efs:
                     packages:

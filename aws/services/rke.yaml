@@ -125,7 +125,9 @@ Resources:
                         {'name': 'InstanceUser', 'value': os.environ['InstanceUser']},
                         {'name': 'Bucket', 'value': os.environ['Bucket']},
                         {'name': 'FQDN', 'value': os.environ['FQDN']},
-                        {'name': 'Status', 'value': os.environ['Status']}
+                        {'name': 'Status', 'value': os.environ['Status']},
+                        {'name': 'event', 'value': event},
+                        {'name': 'context', 'value': context}
                     ]
                 }
 

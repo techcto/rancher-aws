@@ -117,7 +117,7 @@ Resources:
                 print(os.environ)
                 codebuild = boto3.client('codebuild')
 
-                response = codebuild.start_build(
+                codebuild.start_build(
                   projectName = os.environ['ProjectName'],
                   environmentVariablesOverride = [
                     {

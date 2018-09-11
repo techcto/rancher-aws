@@ -116,7 +116,7 @@ Resources:
                 print('Starting a new build ...')
                 print(os.environ)
                 codebuild = boto3.client('codebuild')
-                
+
                 start_args = {
                     'projectName': os.environ['ProjectName'],
                     'environmentVariablesOverride':[
@@ -125,8 +125,7 @@ Resources:
                         {'name': 'Bucket', 'value': os.environ['Bucket']},
                         {'name': 'FQDN', 'value': os.environ['FQDN']},
                         {'name': 'Status', 'value': os.environ['Status']},
-                        {'name': 'event', 'value': json.dumps(event)},
-                        {'name': 'context', 'value': json.dumps(context)}
+                        {'name': 'event', 'value': json.dumps(event)}
                     ]
                 }
 

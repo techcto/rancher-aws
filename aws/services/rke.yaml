@@ -110,7 +110,7 @@ Resources:
           ZipFile: !Join 
           - ''
           - - |
-              import boto3,os
+              import boto3,os,json
 
               def run(event, context):
                 print('Starting a new build ...')
@@ -126,8 +126,8 @@ Resources:
                         {'name': 'Bucket', 'value': os.environ['Bucket']},
                         {'name': 'FQDN', 'value': os.environ['FQDN']},
                         {'name': 'Status', 'value': os.environ['Status']},
-                        {'name': 'event', 'value': event},
-                        {'name': 'context', 'value': context}
+                        {'name': 'event', 'value': json.dumps(event)},
+                        {'name': 'context', 'value': json.dumps(context)}
                     ]
                 }
 

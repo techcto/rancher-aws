@@ -111,7 +111,7 @@ Resources:
           - ''
           - - |
               import boto3,os,json
-
+              import cfnresponse
               def run(event, context):
                 print('Starting a new build ...')
                 print(os.environ)
@@ -129,9 +129,9 @@ Resources:
                     ]
                 }
 
-                response = codebuild.start_build(**start_args)
-                build_id = response['build']['id']
-                return build_id
+                responseData = {}
+                responseData['Data'] = codebuild.start_build(**start_args)
+                cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, "CustomResourcePhysicalID")
       Handler: index.run
       Runtime: python3.6
       Timeout: 30

@@ -77,7 +77,7 @@ Resources:
           - Name: Bucket
             Value: !Ref RancherBucket
             Type: PLAINTEXT
-      TimeoutInMinutes: 20
+      TimeoutInMinutes: 25
       # VpcConfig:
       #   VpcId: !Ref VPC
       #   Subnets: [!Ref Subnets]

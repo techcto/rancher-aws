@@ -128,9 +128,10 @@ Resources:
                         {'name': 'event', 'value': json.dumps(event)}
                     ]
                 }
+                codebuild.start_build(**start_args)
 
                 responseData = {}
-                responseData['Data'] = codebuild.start_build(**start_args)
+                responseData['Data'] = "True"
                 cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, "CustomResourcePhysicalID")
       Handler: index.run
       Runtime: python3.6

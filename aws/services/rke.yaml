@@ -40,7 +40,6 @@ Parameters:
     Status:
       Type: String
       Default: 'update'
-
     
 Resources:
 

@@ -116,8 +116,7 @@ Resources:
                 print('Starting a new build ...')
                 print(os.environ)
                 codebuild = boto3.client('codebuild')
-
-                # set up our codebuild start_build args
+                
                 start_args = {
                     'projectName': os.environ['ProjectName'],
                     'environmentVariablesOverride':[
@@ -138,25 +137,6 @@ Resources:
       Handler: index.run
       Runtime: python3.6
       Timeout: 30
-
-  # LifecycleExecuteRKE:
-  #   Type: 'AWS::Lambda::Function'
-  #   Properties:
-  #     Environment:
-  #       Variables:
-  #         Cluster: !Ref AutoScalingGroup
-  #         KeyName: !Ref KeyName
-  #         InstanceUser: !Ref InstanceUser
-  #         Bucket:  !Ref RancherBucket
-  #         Clean: False
-  #         FQDN: !Ref FQDN
-  #     Handler: app.run
-  #     Role: !Ref LambdaExecutionRole
-  #     Code: 
-  #       S3Bucket: !Ref RancherBucket
-  #       S3Key: 'rke-runner.zip'
-  #     Runtime: python3.6
-  #     Timeout: 300
 
   ExecuteLifecycleExecuteRKE:
     Type: 'Custom::ExecuteLifecycleExecuteRKE'

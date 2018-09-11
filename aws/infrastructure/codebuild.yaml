@@ -52,7 +52,10 @@ Resources:
       Name: !Ref CodeBuildProjectName
       ServiceRole: !Ref CodeBuildRole
       Artifacts:
-        Type: no_artifacts
+        Type: S3
+        EncryptionDisabled: True
+        OverrideArtifactName: True
+        Location: !Ref 'RancherBucket'
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL

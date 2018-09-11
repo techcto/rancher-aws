@@ -134,9 +134,7 @@ Resources:
                 response = codebuild.start_build(**start_args)
                 build_id = response['build']['id']
                 logger.info('--Build ID = %s', build_id)
-                
-              # return the build ID
-              return build_id
+                return build_id
       Handler: index.run
       Runtime: python3.6
       Timeout: 30

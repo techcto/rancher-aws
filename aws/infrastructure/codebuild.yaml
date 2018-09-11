@@ -56,7 +56,7 @@ Resources:
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: docker.io/amazonlinux:2
+        Image: docker.io/techcto/python-codebuild
         EnvironmentVariables:
           - Name: CLUSTER
             Value: !Ref AutoScalingGroup

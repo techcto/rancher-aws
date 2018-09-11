@@ -131,7 +131,12 @@ Resources:
 
                 responseData = {}
                 responseData['Data'] = "True"
-                cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, "CustomResourcePhysicalID")
+
+                try:
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, "CustomResourcePhysicalID")
+                except BaseException as e:
+                  print(str(e))
+                  return True
       Handler: index.run
       Runtime: python3.6
       Timeout: 30
